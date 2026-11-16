@@ -67,7 +67,10 @@ def test_square_examples_keep_hero_centred(method):
     from blueprint.model import SheetOptions
     _, report = render_example((600, 600), SheetOptions(method=method))
     x0, y0, x1, y1 = report.hero_box
-    assert 250 <= (x0 + x1) / 2 <= 350
+    bx0, by0, bx1, by1 = report.border
+    assert bx0 <= x0 and x1 <= bx1 and by0 <= y0 and y1 <= by1  # never outside the sheet
+    if method != "toolpath":  # the toolpath figure is wide and sits where the callouts leave room
+        assert 250 <= (x0 + x1) / 2 <= 350
     assert 260 <= y1 - y0 <= 360
 
 

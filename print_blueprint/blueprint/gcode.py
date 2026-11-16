@@ -54,8 +54,10 @@ def _moves(gcode: str) -> Iterator[tuple]:
 def parse_walls(gcode: str, bbox: tuple | None) -> list[tuple[float, list[np.ndarray]]]:
     """Outer and overhang wall polylines per layer as (z, [Nx2 arrays]).
 
-    Arcs are interpolated at 0.5 mm. With a bbox (x0, y0, x1, y1), any path leaving it by more
-    than 3 mm is dropped (purge and flush moves sit outside the objects)."""
+    Arcs are interpolated at 0.5 mm. With a bbox (x0, y0, x1, y1), a path whose centre lies far
+    outside it is dropped: more than half the box's longer side (and at least 3 mm) away, where
+    purge lines and a prime tower sit. The slicer's box is a few mm off on some prints, and a tight
+    clip cut real walls out of the picture (a gun barrel, the top of a skull, half a heart box)."""
     layers: list[tuple[float, list[list[tuple[float, float]]]]] = []
     paths: list[list[tuple[float, float]]] = []
     cur: list[tuple[float, float]] | None = None
@@ -102,12 +104,12 @@ def parse_walls(gcode: str, bbox: tuple | None) -> list[tuple[float, list[np.nda
 
     out = []
     if bbox:
-        x0, y0, x1, y1 = bbox[0] - _BBOX_MARGIN, bbox[1] - _BBOX_MARGIN, bbox[2] + _BBOX_MARGIN, bbox[3] + _BBOX_MARGIN
+        m = max(_BBOX_MARGIN, 0.5 * max(bbox[2] - bbox[0], bbox[3] - bbox[1]))
+        x0, y0, x1, y1 = bbox[0] - m, bbox[1] - m, bbox[2] + m, bbox[3] + m
     for z, ps in layers:
         arrs = [np.asarray(p, dtype=np.float64) for p in ps]
         if bbox:
-            arrs = [a for a in arrs
-                    if a[:, 0].min() >= x0 and a[:, 0].max() <= x1 and a[:, 1].min() >= y0 and a[:, 1].max() <= y1]
+            arrs = [a for a in arrs if x0 <= a[:, 0].mean() <= x1 and y0 <= a[:, 1].mean() <= y1]
         if arrs:
             out.append((z, arrs))
     return out

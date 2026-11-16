@@ -90,8 +90,8 @@ G1 X240 Y265 E1
 ; CHANGE_LAYER
 ; Z_HEIGHT: 0.4
 ; FEATURE: Outer wall
-G1 X240 Y265 F3000
-G1 X245 Y265 E1
+G1 X400 Y400 F3000
+G1 X405 Y400 E1
 """
 
 
@@ -99,8 +99,29 @@ def test_parse_walls_drops_purge_outside_bbox():
     bbox = (80, 30, 170, 200)
     layers = parse_walls(SYN, bbox)
     pts = [p for _, ps in layers for a in ps for p in a.tolist()]
-    assert all(not (abs(x - 240) < 1 and abs(y - 265) < 1) for x, y in pts)
+    assert all(not (abs(x - 400) < 6 and abs(y - 400) < 1) for x, y in pts)
     assert len(parse_walls(SYN, None)) == 2
+
+
+def test_parse_walls_keeps_a_wall_that_reaches_past_the_box_by_a_hair():
+    """The slicer's bbox is a little off on some prints: a loop whose edge sits just outside it is
+    still the part; a loop far outside (the prime tower) is not."""
+    g = """; CHANGE_LAYER
+; Z_HEIGHT: 0.2
+; FEATURE: Outer wall
+G1 X100 Y100 F3000
+G1 X140 Y100 E1
+G1 X140 Y134 E1
+G1 X100 Y134 E1
+G1 X100 Y100 E1
+; FEATURE: Outer wall
+G1 X300 Y250 F3000
+G1 X310 Y250 E1
+G1 X310 Y260 E1
+"""
+    bbox = (100, 100, 140, 130)  # the loop's top edge reaches 4 mm past it
+    (z, arrs), = parse_walls(g, bbox)
+    assert len(arrs) == 1 and arrs[0][:, 1].max() == 134
 
 
 def test_arcs_interpolated():

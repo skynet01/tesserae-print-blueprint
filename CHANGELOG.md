@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Toolpaths no longer lose parts of a print (a gun barrel, the top of a skull) to a tight bounding-box clip.
 - Toolpaths, line art and AI engraving give the picture the same room on the glass.
 - Preview line art keeps fine details with sharp contours and lighter, separated shadow strokes.
 - Preview each method with a bundled T800 example; choose Live print for free live previews.
