@@ -55,12 +55,21 @@ def _fill_window(loops: list[np.ndarray], x0: int, y0: int, x1: int, y1: int) ->
 
 
 def _dash_runs(p: np.ndarray, dash: float):
-    """Polylines covering the 'on' stretches of p, dashed by arc length."""
+    """Polylines covering the 'on' stretches of p, dashed by true arc length: long straight
+    segments are cut at every dash boundary, so straight walls dash like curved ones."""
     if len(p) < 2:
         return
+    p = np.asarray(p, dtype=np.float64)
     seg = np.hypot(*np.diff(p, axis=0).T)
-    start = np.concatenate([[0.0], np.cumsum(seg)[:-1]])
-    on = (start // dash).astype(np.int64) % 2 == 0
+    s = np.concatenate([[0.0], np.cumsum(seg)])
+    total = s[-1]
+    if total <= 0:
+        return
+    marks = np.arange(dash, total, dash)
+    ss = np.union1d(s, marks)
+    q = np.stack([np.interp(ss, s, p[:, 0]), np.interp(ss, s, p[:, 1])], axis=1)
+    mid = (ss[:-1] + ss[1:]) / 2
+    on = (mid // dash).astype(np.int64) % 2 == 0
     k = 0
     n = len(on)
     while k < n:
@@ -70,7 +79,7 @@ def _dash_runs(p: np.ndarray, dash: float):
         j = k
         while j < n and on[j]:
             j += 1
-        yield p[k: j + 1]
+        yield np.round(q[k: j + 1]).astype(np.int32)
         k = j
 
 

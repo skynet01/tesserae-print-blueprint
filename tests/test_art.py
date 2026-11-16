@@ -148,3 +148,18 @@ def test_preview_art_opaque_cover():
     art = preview_art(buf.getvalue(), (600, 600))
     frac = (art.solid > 0).mean()
     assert 0.1 < frac < 0.8  # background not treated as part
+
+
+def test_long_straight_segments_are_dashed_too():
+    """A wall made of one long segment must dash like a curve made of many short ones; deciding
+    on/off once per segment drew straight walls of unprinted layers solid."""
+    from blueprint.art import _dash_runs
+
+    straight = np.array([[0, 0], [400, 0]], dtype=np.float64)
+    runs = list(_dash_runs(straight, 20.0))
+    assert len(runs) == 10
+    drawn = sum(float(np.hypot(*np.diff(r, axis=0).T).sum()) for r in runs)
+    assert 190 <= drawn <= 210  # half the length is ink
+
+    curve = np.stack([np.linspace(0, 400, 401), np.zeros(401)], axis=1)
+    assert len(list(_dash_runs(curve, 20.0))) == len(runs)
