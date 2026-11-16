@@ -1,0 +1,17 @@
+{
+  "widget_title": "Print Blueprint",
+  "sheet_alt": "Blueprint of {title} on {printer}",
+  "a_printer": "a printer",
+  "a_print": "a print",
+  "no_print": "No print running",
+  "no_print_detail": "{printer} is not printing.",
+  "no_history": "No print running",
+  "no_history_detail": "{printer} has no print to show yet.",
+  "no_printer": "No Bambu Lab printer found",
+  "no_printer_detail": "Add the Bambu Lab integration (ha-bambulab) to Home Assistant.",
+  "not_found": "Printer not found",
+  "not_found_detail": "Home Assistant has no printer called {printer}. Pick one in this widget's options.",
+  "drawing": "Drawing the blueprint",
+  "nothing": "Nothing to draw yet",
+  "nothing_detail": "The drawing starts when a screen shows this widget."
+}

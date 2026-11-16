@@ -1,0 +1,33 @@
+.w[data-widget="print_blueprint"].pb {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  container-type: size;
+  background: var(--pb-bg, #1c4688);
+  color: var(--pb-ink, #ecf2ff);
+}
+
+.w[data-widget="print_blueprint"] .sheet {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.w[data-widget="print_blueprint"] .empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  height: 100%;
+  padding: 6cqmin;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.w[data-widget="print_blueprint"] .empty i { font-size: clamp(28px, 16cqmin, 120px); }
+.w[data-widget="print_blueprint"] .empty strong { font-size: clamp(13px, 6cqmin, 40px); }
+.w[data-widget="print_blueprint"] .empty span { font-size: clamp(10px, 3.4cqmin, 24px); opacity: 0.8; max-width: 40em; }
+.w[data-widget="print_blueprint"].size-sm .empty span { display: none; }

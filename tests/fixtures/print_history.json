@@ -1,0 +1,22 @@
+{
+  "files": [
+    {
+      "filename": "synthetic-block.3mf",
+      "path": "DEMO_P1S_001/prints/cache/synthetic-block.3mf",
+      "size": 5020,
+      "printer_serial": "DEMO_P1S_001",
+      "printer_name": "Demo P1S",
+      "printer_model": "P1S",
+      "modified": "2026-01-01T12:00:00"
+    },
+    {
+      "filename": "synthetic-plate.3mf",
+      "path": "DEMO_P1S_001/prints/cache/synthetic-plate.3mf",
+      "size": 5170,
+      "printer_serial": "DEMO_P1S_001",
+      "printer_name": "Demo P1S",
+      "printer_model": "P1S",
+      "modified": "2026-01-01T12:01:00"
+    }
+  ]
+}

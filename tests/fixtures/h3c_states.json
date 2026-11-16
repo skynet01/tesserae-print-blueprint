@@ -1,0 +1,1643 @@
+{
+ "camera.h3c_printer_camera": {
+  "state": "unavailable",
+  "attributes": {
+   "entity_picture": "/api/camera_proxy/camera.h3c_printer_camera?token=REDACTED",
+   "icon": "mdi:camera",
+   "friendly_name": "H3C Printer Camera",
+   "supported_features": 2
+  }
+ },
+ "binary_sensor.h3c_printer_timelapse": {
+  "state": "on",
+  "attributes": {
+   "device_class": "running",
+   "icon": "mdi:camera",
+   "friendly_name": "H3C Printer Timelapse"
+  }
+ },
+ "binary_sensor.h3c_printer_extruder_filament": {
+  "state": "on",
+  "attributes": {
+   "friendly_name": "H3C Printer Extruder filament"
+  }
+ },
+ "binary_sensor.h3c_printer_hms_errors": {
+  "state": "off",
+  "attributes": {
+   "Count": 0,
+   "device_class": "problem",
+   "friendly_name": "H3C Printer HMS errors"
+  }
+ },
+ "binary_sensor.h3c_printer_print_error": {
+  "state": "off",
+  "attributes": {
+   "device_class": "problem",
+   "friendly_name": "H3C Printer Print error"
+  }
+ },
+ "binary_sensor.h3c_printer_online": {
+  "state": "on",
+  "attributes": {
+   "device_class": "running",
+   "friendly_name": "H3C Printer Online",
+   "templates": {
+    "icon_color": "if (state == 'on') return 'var(--green-color,#80C884)'; return 'var(--red-color,#FF4348)';"
+   }
+  }
+ },
+ "binary_sensor.h3c_printer_firmware": {
+  "state": "off",
+  "attributes": {
+   "device_class": "update",
+   "friendly_name": "H3C Printer Firmware"
+  }
+ },
+ "binary_sensor.h3c_printer_developer_lan_mode": {
+  "state": "off",
+  "attributes": {
+   "device_class": "running",
+   "friendly_name": "H3C Printer Developer LAN mode"
+  }
+ },
+ "binary_sensor.h3c_printer_mqtt_encryption": {
+  "state": "on",
+  "attributes": {
+   "device_class": "running",
+   "friendly_name": "H3C Printer MQTT encryption"
+  }
+ },
+ "binary_sensor.h3c_printer_hybrid_mqtt_control_blocked": {
+  "state": "off",
+  "attributes": {
+   "device_class": "running",
+   "friendly_name": "H3C Printer Hybrid MQTT control blocked"
+  }
+ },
+ "image.h3c_printer_cover_image": {
+  "state": "2026-11-14T00:48:04.868190",
+  "attributes": {
+   "access_token": "REDACTED",
+   "entity_picture": "/api/image_proxy/image.h3c_printer_cover_image?token=REDACTED",
+   "friendly_name": "H3C Printer Cover image"
+  }
+ },
+ "image.h3c_printer_pick_image": {
+  "state": "2026-11-14T00:48:02.719845",
+  "attributes": {
+   "access_token": "REDACTED",
+   "entity_picture": "/api/image_proxy/image.h3c_printer_pick_image?token=REDACTED",
+   "friendly_name": "H3C Printer Pick image"
+  }
+ },
+ "light.h3c_printer_chamber_light": {
+  "state": "on",
+  "attributes": {
+   "supported_color_modes": [
+    "onoff"
+   ],
+   "color_mode": "onoff",
+   "icon": "mdi:led-strip-variant",
+   "friendly_name": "H3C Printer Chamber light",
+   "supported_features": 0
+  }
+ },
+ "sensor.h3c_printer_mqtt_connection_mode": {
+  "state": "local",
+  "attributes": {
+   "options": [
+    "bambu_cloud",
+    "local"
+   ],
+   "device_class": "enum",
+   "friendly_name": "H3C Printer MQTT connection mode"
+  }
+ },
+ "sensor.h3c_printer_wi_fi_signal": {
+  "state": "-43",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "dBm",
+   "device_class": "signal_strength",
+   "friendly_name": "H3C Printer Wi-Fi signal"
+  }
+ },
+ "sensor.h3c_printer_bed_temperature": {
+  "state": "70",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "\u00b0C",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer Bed temperature"
+  }
+ },
+ "sensor.h3c_printer_bed_target_temperature": {
+  "state": "70",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "\u00b0C",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer Bed target temperature"
+  }
+ },
+ "sensor.h3c_printer_chamber_temperature": {
+  "state": "40",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "\u00b0C",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer Chamber temperature"
+  }
+ },
+ "sensor.h3c_printer_chamber_target_temperature": {
+  "state": "0",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "\u00b0C",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer Chamber target temperature"
+  }
+ },
+ "sensor.h3c_printer_nozzle_temperature": {
+  "state": "245",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "\u00b0C",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer Nozzle temperature"
+  }
+ },
+ "sensor.h3c_printer_nozzle_target_temperature": {
+  "state": "245",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "\u00b0C",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer Nozzle target temperature"
+  }
+ },
+ "sensor.h3c_printer_aux_fan_speed": {
+  "state": "0",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "%",
+   "friendly_name": "H3C Printer Aux fan speed",
+   "templates": {
+    "icon_color": "if (state > 10) return 'var(--green-color,#80C884)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "sensor.h3c_printer_chamber_fan_speed": {
+  "state": "60",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "%",
+   "friendly_name": "H3C Printer Chamber fan speed",
+   "templates": {
+    "icon_color": "if (state > 10) return 'var(--green-color,#80C884)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "sensor.h3c_printer_cooling_fan_speed": {
+  "state": "100",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "%",
+   "friendly_name": "H3C Printer Cooling fan speed",
+   "templates": {
+    "icon_color": "if (state > 10) return 'var(--green-color,#80C884)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "sensor.h3c_printer_heatbreak_fan_speed": {
+  "state": "100",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "%",
+   "friendly_name": "H3C Printer Heatbreak fan speed",
+   "templates": {
+    "icon_color": "if (state > 10) return 'var(--green-color,#80C884)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "sensor.h3c_printer_secondary_aux_fan_speed": {
+  "state": "0",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "%",
+   "friendly_name": "H3C Printer Secondary aux fan speed",
+   "templates": {
+    "icon_color": "if (state > 10) return 'var(--green-color,#80C884)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "sensor.h3c_printer_model_download": {
+  "state": "100",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "%",
+   "friendly_name": "H3C Printer Model download"
+  }
+ },
+ "sensor.h3c_printer_speed_profile": {
+  "state": "standard",
+  "attributes": {
+   "options": [
+    "silent",
+    "standard",
+    "sport",
+    "ludicrous"
+   ],
+   "modifier": 100,
+   "device_class": "enum",
+   "friendly_name": "H3C Printer Speed profile"
+  }
+ },
+ "sensor.h3c_printer_airduct_mode": {
+  "state": "cooling",
+  "attributes": {
+   "options": [
+    "cooling",
+    "heating"
+   ],
+   "device_class": "enum",
+   "friendly_name": "H3C Printer Airduct mode"
+  }
+ },
+ "sensor.h3c_printer_current_stage": {
+  "state": "printing",
+  "attributes": {
+   "options": [
+    "paused_first_layer_error",
+    "checking_extruder_temperature",
+    "unknown",
+    "m400_pause",
+    "cooling_chamber",
+    "heating_chamber",
+    "calibrate_nozzle_offset",
+    "calibrating_camera_offset",
+    "laser_calibration",
+    "auto_bed_leveling",
+    "waiting_for_heatbed_temperature",
+    "preparing_ams",
+    "cleaning_nozzle_tip",
+    "cooling_nozzle",
+    "check_absolute_accuracy_before_calibration",
+    "sweeping_xy_mech_mode",
+    "printing",
+    "bed_level_high_temperature",
+    "paused_chamber_temperature_control_error",
+    "calibrating_detection_nozzle_clumping",
+    "heatbed_stabilizing",
+    "measuring_surface",
+    "heatbed_underside_foreign_object_detection",
+    "scanning_bed_surface",
+    "thermal_preconditioning",
+    "bed_level_phase_2",
+    "measuring_rotary_attachment",
+    "filament_unloading",
+    "pre_extrusion_before_printing",
+    "filament_loading",
+    "check_door_and_cover",
+    "hotend_type_detection",
+    "paused_user",
+    "moving_toolhead_to_center_of_heatbed",
+    "check_plaform",
+    "paused_heat_bed_temperature_malfunction",
+    "idle",
+    "paused_ams_lost",
+    "paused_low_fan_speed_heat_break",
+    "preparing_hotend",
+    "paused_filament_runout",
+    "paused_user_gcode",
+    "build_plate_alignment_detection",
+    "homing_blade_holder",
+    "heated_bedcooling",
+    "paused_skipped_step",
+    "active_arc_fitting",
+    "homing_toolhead",
+    "calibrating_cutter_model_offset",
+    "bed_level_phase_1",
+    "paused_cutter_error",
+    "absolute_accuracy_calibration",
+    "calibrating_extrusion",
+    "changing_filament",
+    "check_absolute_accuracy_after_calibration",
+    "print_calibration_lines",
+    "waiting_chamber_temperature_equalize",
+    "hotend_pick_place_test",
+    "calibrate_birdeye_camera",
+    "calibrating_micro_lidar",
+    "calibrating_blade_holder_position",
+    "paused_nozzle_clog",
+    "calibrating_live_view_camera",
+    "motor_noise_showoff",
+    "check_quick_release",
+    "moving_toolhead_above_purge_chute",
+    "identifying_build_plate_type",
+    "calibrating_extrusion_flow",
+    "check_material_position",
+    "calibrating_motor_noise",
+    "paused_nozzle_temperature_malfunction",
+    "paused_nozzle_filament_covered_detected",
+    "heatbed_preheating",
+    "check_material",
+    "inspecting_first_layer",
+    "purifying_chamber_air",
+    "heatbed_surface_foreign_object_detection",
+    "check_birdeye_camera_position",
+    "paused_front_cover_falling",
+    "heating_hotend",
+    "offline"
+   ],
+   "planned_stages": [
+    "homing_toolhead",
+    "heatbed_surface_foreign_object_detection",
+    "cooling_chamber",
+    "heatbed_preheating",
+    "hotend_type_detection",
+    "changing_filament",
+    "calibrating_extrusion",
+    "cleaning_nozzle_tip",
+    "sweeping_xy_mech_mode",
+    "heatbed_stabilizing",
+    "calibrate_nozzle_offset",
+    "auto_bed_leveling",
+    "print_calibration_lines"
+   ],
+   "step": null,
+   "total_steps": 13,
+   "device_class": "enum",
+   "friendly_name": "H3C Printer Current stage"
+  }
+ },
+ "sensor.h3c_printer_print_progress": {
+  "state": "27",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "%",
+   "friendly_name": "H3C Printer Print progress"
+  }
+ },
+ "sensor.h3c_printer_print_status": {
+  "state": "running",
+  "attributes": {
+   "options": [
+    "failed",
+    "finish",
+    "idle",
+    "init",
+    "offline",
+    "pause",
+    "prepare",
+    "running",
+    "slicing",
+    "unknown",
+    "offline"
+   ],
+   "device_class": "enum",
+   "friendly_name": "H3C Printer Print status"
+  }
+ },
+ "sensor.h3c_printer_printable_objects": {
+  "state": "0",
+  "attributes": {
+   "state_class": "measurement",
+   "objects": {},
+   "friendly_name": "H3C Printer Printable objects"
+  }
+ },
+ "sensor.h3c_printer_sd_card_status": {
+  "state": "not_applicable",
+  "attributes": {
+   "options": [
+    "missing",
+    "normal",
+    "abnormal",
+    "not_applicable"
+   ],
+   "reported_storage": [],
+   "device_class": "enum",
+   "friendly_name": "H3C Printer SD card status"
+  }
+ },
+ "sensor.h3c_printer_external_storage_connection": {
+  "state": "disconnected",
+  "attributes": {
+   "options": [
+    "connected",
+    "disconnected"
+   ],
+   "device_class": "enum",
+   "friendly_name": "H3C Printer External Storage connection"
+  }
+ },
+ "sensor.h3c_printer_skipped_objects": {
+  "state": "0",
+  "attributes": {
+   "state_class": "measurement",
+   "objects": [],
+   "friendly_name": "H3C Printer Skipped objects"
+  }
+ },
+ "sensor.h3c_printer_start_time": {
+  "state": "2026-11-14T05:35:47+00:00",
+  "attributes": {
+   "device_class": "timestamp",
+   "friendly_name": "H3C Printer Start time"
+  }
+ },
+ "sensor.h3c_printer_remaining_time": {
+  "state": "5.61666666666667",
+  "attributes": {
+   "unit_of_measurement": "h",
+   "device_class": "duration",
+   "friendly_name": "H3C Printer Remaining time"
+  }
+ },
+ "sensor.h3c_printer_end_time": {
+  "state": "2026-11-14T13:28:00+00:00",
+  "attributes": {
+   "device_class": "timestamp",
+   "friendly_name": "H3C Printer End time"
+  }
+ },
+ "sensor.h3c_printer_total_usage": {
+  "state": "50.0",
+  "attributes": {
+   "state_class": "total_increasing",
+   "unit_of_measurement": "h",
+   "device_class": "duration",
+   "friendly_name": "H3C Printer Total usage"
+  }
+ },
+ "sensor.h3c_printer_current_layer": {
+  "state": "61",
+  "attributes": {
+   "state_class": "measurement",
+   "friendly_name": "H3C Printer Current layer"
+  }
+ },
+ "sensor.h3c_printer_total_layer_count": {
+  "state": "694",
+  "attributes": {
+   "state_class": "measurement",
+   "friendly_name": "H3C Printer Total layer count"
+  }
+ },
+ "sensor.h3c_printer_gcode_filename": {
+  "state": "/data/Metadata/plate_1.gcode",
+  "attributes": {
+   "icon": "mdi:cloud-outline",
+   "friendly_name": "H3C Printer Gcode filename"
+  }
+ },
+ "sensor.h3c_printer_gcode_file_downloaded": {
+  "state": "unknown",
+  "attributes": {
+   "icon": "mdi:cloud-outline",
+   "friendly_name": "H3C Printer Gcode file downloaded"
+  }
+ },
+ "sensor.h3c_printer_task_name": {
+  "state": "Synthetic_assembly_plate_1",
+  "attributes": {
+   "ams_mapping": [
+    {
+     "ams": 32,
+     "tray": 3
+    }
+   ],
+   "icon": "mdi:cloud-outline",
+   "friendly_name": "H3C Printer Task name"
+  }
+ },
+ "sensor.h3c_printer_print_type": {
+  "state": "cloud",
+  "attributes": {
+   "options": [
+    "local",
+    "cloud",
+    "idle",
+    "system",
+    "unknown"
+   ],
+   "device_class": "enum",
+   "icon": "mdi:cloud-outline",
+   "friendly_name": "H3C Printer Print type"
+  }
+ },
+ "sensor.h3c_printer_printer_name": {
+  "state": "H3C Printer",
+  "attributes": {
+   "friendly_name": "H3C Printer Printer name"
+  }
+ },
+ "sensor.h3c_printer_print_length": {
+  "state": "43.98",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "m",
+   "device_class": "distance",
+   "friendly_name": "H3C Printer Print length"
+  }
+ },
+ "sensor.h3c_printer_print_bed_type": {
+  "state": "textured_plate",
+  "attributes": {
+   "friendly_name": "H3C Printer Print bed type"
+  }
+ },
+ "sensor.h3c_printer_print_weight": {
+  "state": "135.41",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "g",
+   "device_class": "weight",
+   "friendly_name": "H3C Printer Print weight"
+  }
+ },
+ "sensor.h3c_printer_active_tray": {
+  "state": "Bambu PETG HF",
+  "attributes": {
+   "ams_index": 32,
+   "bed_temp": "0",
+   "color": "#AF7933FF",
+   "cols": [
+    "#AF7933FF"
+   ],
+   "ctype": 2,
+   "dry_temp": "0",
+   "dry_time": "0",
+   "filament_id": "GFG02",
+   "tray_weight": "1000",
+   "name": "Bambu PETG HF",
+   "nozzle_temp_min": "230",
+   "nozzle_temp_max": "270",
+   "remain": 96,
+   "remain_enabled": true,
+   "tag_uid": "0000000000000000",
+   "tray_index": 3,
+   "tray_uuid": "00000000000000000000000000000000",
+   "type": "PETG",
+   "friendly_name": "H3C Printer Active tray"
+  }
+ },
+ "sensor.h3c_printer_nozzle_size": {
+  "state": "0.4",
+  "attributes": {
+   "unit_of_measurement": "mm",
+   "device_class": "distance",
+   "friendly_name": "H3C Printer Nozzle size"
+  }
+ },
+ "sensor.h3c_printer_nozzle_type": {
+  "state": "hardened_steel",
+  "attributes": {
+   "friendly_name": "H3C Printer Nozzle type"
+  }
+ },
+ "sensor.h3c_printer_ip_address": {
+  "state": "192.0.2.10",
+  "attributes": {
+   "friendly_name": "H3C Printer IP address"
+  }
+ },
+ "sensor.h3c_printer_serial_number": {
+  "state": "DEMO_H3C_001",
+  "attributes": {
+   "friendly_name": "H3C Printer Serial number"
+  }
+ },
+ "sensor.h3c_printer_external_storage_total": {
+  "state": "unknown",
+  "attributes": {
+   "state_class": "measurement",
+   "source": "device.cam.tl_external_*_kb",
+   "unit_of_measurement": "GiB",
+   "device_class": "data_size",
+   "friendly_name": "H3C Printer External Storage total"
+  }
+ },
+ "sensor.h3c_printer_external_storage_used": {
+  "state": "unknown",
+  "attributes": {
+   "state_class": "measurement",
+   "source": "device.cam.tl_external_*_kb",
+   "unit_of_measurement": "GiB",
+   "device_class": "data_size",
+   "friendly_name": "H3C Printer External Storage used"
+  }
+ },
+ "sensor.h3c_printer_external_storage_free": {
+  "state": "unknown",
+  "attributes": {
+   "state_class": "measurement",
+   "source": "device.cam.tl_external_*_kb",
+   "unit_of_measurement": "GiB",
+   "device_class": "data_size",
+   "friendly_name": "H3C Printer External Storage free",
+   "templates": {
+    "icon_color": "if (state < '20') return 'var(--yellow-color,#ffc107)'; if (state < '10') return 'var(--red-color,#FF4348)'; return 'var(--state-icon-color,#4a6185)';\n"
+   }
+  }
+ },
+ "switch.h3c_printer_camera": {
+  "state": "on",
+  "attributes": {
+   "icon": "mdi:video",
+   "friendly_name": "H3C Printer Camera",
+   "templates": {
+    "icon_color": "if (state === 'on') return 'var(--state-icon-active-color,#ffc107)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "binary_sensor.h3c_printer_ams_3h_active": {
+  "state": "on",
+  "attributes": {
+   "device_class": "running",
+   "icon": "mdi:check",
+   "friendly_name": "H3C Printer_AMS_3H Active",
+   "templates": {
+    "icon_color": "if (state == 'on') return 'var(--green-color,#80C884)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "sensor.h3c_printer_ams_3h_status": {
+  "state": "filament_loaded",
+  "attributes": {
+   "options": [
+    "calibration",
+    "changing_filament",
+    "checking_position",
+    "cold_pull",
+    "cutting_filament",
+    "debug",
+    "filament_loaded",
+    "heating_nozzle",
+    "idle",
+    "pulling_back_filament",
+    "purging_old_filament",
+    "pushing_new_filament",
+    "rfid_identifying",
+    "self_check",
+    "unknown"
+   ],
+   "device_class": "enum",
+   "icon": "mdi:swap-horizontal",
+   "friendly_name": "H3C Printer_AMS_3H Status"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_tray_1": {
+  "state": "PLA",
+  "attributes": {
+   "slot": 1,
+   "filament_diameter": 1.75,
+   "remaining_weight_g": 1000.0,
+   "active": false,
+   "bed_temp": "0",
+   "color": "#E24585FF",
+   "cols": [
+    "#E24585FF"
+   ],
+   "ctype": 2,
+   "dry_temp": "55",
+   "dry_time": "8",
+   "empty": false,
+   "unknown": false,
+   "state": 443,
+   "filament_id": "GFA20",
+   "tray_weight": "1000",
+   "name": "PLA",
+   "nozzle_temp_min": "190",
+   "nozzle_temp_max": "230",
+   "remain": 100,
+   "remain_enabled": true,
+   "tag_uid": "0000000000000002",
+   "tray_uuid": "00000000000000000000000000000003",
+   "type": "PLA",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_AMS_3H Tray 1"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_tray_2": {
+  "state": "PETG",
+  "attributes": {
+   "slot": 2,
+   "filament_diameter": 1.75,
+   "remaining_weight_g": null,
+   "active": false,
+   "bed_temp": "0",
+   "color": "#E8DBB7FF",
+   "cols": [
+    "#E8DBB7FF"
+   ],
+   "ctype": 2,
+   "dry_temp": "0",
+   "dry_time": "0",
+   "empty": false,
+   "unknown": false,
+   "state": 27,
+   "filament_id": "GFG03",
+   "tray_weight": "-1",
+   "name": "PETG",
+   "nozzle_temp_min": "230",
+   "nozzle_temp_max": "270",
+   "remain": -1,
+   "remain_enabled": true,
+   "tag_uid": "0000000000000000",
+   "tray_uuid": "00000000000000000000000000000000",
+   "type": "PETG",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_AMS_3H Tray 2"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_tray_3": {
+  "state": "PLA",
+  "attributes": {
+   "slot": 3,
+   "filament_diameter": 1.75,
+   "remaining_weight_g": 937.0,
+   "active": false,
+   "bed_temp": "0",
+   "color": "#0090DAFF",
+   "cols": [
+    "#0090DAFF"
+   ],
+   "ctype": 2,
+   "dry_temp": "55",
+   "dry_time": "8",
+   "empty": false,
+   "unknown": false,
+   "state": 283,
+   "filament_id": "GFA20",
+   "tray_weight": "1000",
+   "name": "PLA",
+   "nozzle_temp_min": "190",
+   "nozzle_temp_max": "230",
+   "remain": 93,
+   "remain_enabled": true,
+   "tag_uid": "0000000000000003",
+   "tray_uuid": "00000000000000000000000000000002",
+   "type": "PLA",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_AMS_3H Tray 3"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_tray_4": {
+  "state": "Bambu PETG HF",
+  "attributes": {
+   "slot": 4,
+   "filament_diameter": 1.75,
+   "remaining_weight_g": 961.0,
+   "active": true,
+   "bed_temp": "0",
+   "color": "#AF7933FF",
+   "cols": [
+    "#AF7933FF"
+   ],
+   "ctype": 2,
+   "dry_temp": "0",
+   "dry_time": "0",
+   "empty": false,
+   "unknown": false,
+   "state": 27,
+   "filament_id": "GFG02",
+   "tray_weight": "1000",
+   "name": "Bambu PETG HF",
+   "nozzle_temp_min": "230",
+   "nozzle_temp_max": "270",
+   "remain": 96,
+   "remain_enabled": true,
+   "tag_uid": "0000000000000000",
+   "tray_uuid": "00000000000000000000000000000000",
+   "type": "PETG",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_AMS_3H Tray 4"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_tray_5": {
+  "state": "PLA",
+  "attributes": {
+   "slot": 5,
+   "filament_diameter": 1.75,
+   "remaining_weight_g": 942.0,
+   "active": false,
+   "bed_temp": "0",
+   "color": "#FCE300FF",
+   "cols": [
+    "#FCE300FF"
+   ],
+   "ctype": 2,
+   "dry_temp": "55",
+   "dry_time": "8",
+   "empty": false,
+   "unknown": false,
+   "state": 283,
+   "filament_id": "GFA20",
+   "tray_weight": "1000",
+   "name": "PLA",
+   "nozzle_temp_min": "190",
+   "nozzle_temp_max": "230",
+   "remain": 94,
+   "remain_enabled": true,
+   "tag_uid": "0000000000000001",
+   "tray_uuid": "00000000000000000000000000000001",
+   "type": "PLA",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_AMS_3H Tray 5"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_tray_6": {
+  "state": "PETG",
+  "attributes": {
+   "slot": 6,
+   "filament_diameter": 1.75,
+   "remaining_weight_g": null,
+   "active": false,
+   "bed_temp": "0",
+   "color": "#68724DFF",
+   "cols": [
+    "#68724DFF"
+   ],
+   "ctype": 2,
+   "dry_temp": "0",
+   "dry_time": "0",
+   "empty": false,
+   "unknown": false,
+   "state": 27,
+   "filament_id": "GFG03",
+   "tray_weight": "-1",
+   "name": "PETG",
+   "nozzle_temp_min": "230",
+   "nozzle_temp_max": "270",
+   "remain": -1,
+   "remain_enabled": true,
+   "tag_uid": "0000000000000000",
+   "tray_uuid": "00000000000000000000000000000000",
+   "type": "PETG",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_AMS_3H Tray 6"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_tray_7": {
+  "state": "Empty",
+  "attributes": {
+   "slot": 7,
+   "filament_diameter": null,
+   "remaining_weight_g": null,
+   "active": false,
+   "bed_temp": 0,
+   "color": "#00000000",
+   "cols": [],
+   "ctype": 0,
+   "dry_temp": 0,
+   "dry_time": 0,
+   "empty": true,
+   "unknown": false,
+   "state": 256,
+   "filament_id": "",
+   "tray_weight": 0,
+   "name": "Empty",
+   "nozzle_temp_min": 0,
+   "nozzle_temp_max": 0,
+   "remain": -1,
+   "remain_enabled": true,
+   "tag_uid": "",
+   "tray_uuid": "",
+   "type": "Empty",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_AMS_3H Tray 7"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_tray_8": {
+  "state": "Empty",
+  "attributes": {
+   "slot": 8,
+   "filament_diameter": null,
+   "remaining_weight_g": null,
+   "active": false,
+   "bed_temp": 0,
+   "color": "#00000000",
+   "cols": [],
+   "ctype": 0,
+   "dry_temp": 0,
+   "dry_time": 0,
+   "empty": true,
+   "unknown": false,
+   "state": 0,
+   "filament_id": "",
+   "tray_weight": 0,
+   "name": "Empty",
+   "nozzle_temp_min": 0,
+   "nozzle_temp_max": 0,
+   "remain": -1,
+   "remain_enabled": true,
+   "tag_uid": "",
+   "tray_uuid": "",
+   "type": "Empty",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_AMS_3H Tray 8"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_tray_9": {
+  "state": "Bambu PETG HF",
+  "attributes": {
+   "slot": 9,
+   "filament_diameter": 1.75,
+   "remaining_weight_g": null,
+   "active": false,
+   "bed_temp": "0",
+   "color": "#474747FF",
+   "cols": [
+    "#474747FF"
+   ],
+   "ctype": 2,
+   "dry_temp": "0",
+   "dry_time": "0",
+   "empty": false,
+   "unknown": false,
+   "state": 27,
+   "filament_id": "GFG02",
+   "tray_weight": "-1",
+   "name": "Bambu PETG HF",
+   "nozzle_temp_min": "230",
+   "nozzle_temp_max": "270",
+   "remain": -1,
+   "remain_enabled": true,
+   "tag_uid": "0000000000000000",
+   "tray_uuid": "00000000000000000000000000000000",
+   "type": "PETG",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_AMS_3H Tray 9"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_zone_1_temperature": {
+  "state": "96.62",
+  "attributes": {
+   "zone": 1,
+   "zone_id": 0,
+   "slots": [
+    6,
+    8
+   ],
+   "dry_setting": {
+    "dry_duration": -1,
+    "dry_filament": "",
+    "dry_temperature": -1
+   },
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_AMS_3H Zone 1 temperature"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_zone_1_humidity": {
+  "state": "24",
+  "attributes": {
+   "zone": 1,
+   "zone_id": 0,
+   "slots": [
+    6,
+    8
+   ],
+   "dry_setting": {
+    "dry_duration": -1,
+    "dry_filament": "",
+    "dry_temperature": -1
+   },
+   "unit_of_measurement": "%",
+   "device_class": "humidity",
+   "friendly_name": "H3C Printer_AMS_3H Zone 1 humidity"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_duration": {
+  "state": "0",
+  "attributes": {
+   "zone": 1,
+   "zone_id": 0,
+   "slots": [
+    6,
+    8
+   ],
+   "dry_setting": {
+    "dry_duration": -1,
+    "dry_filament": "",
+    "dry_temperature": -1
+   },
+   "unit_of_measurement": "min",
+   "device_class": "duration",
+   "friendly_name": "H3C Printer_AMS_3H Duration"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_zone_2_temperature": {
+  "state": "100.76",
+  "attributes": {
+   "zone": 2,
+   "zone_id": 1,
+   "slots": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    9
+   ],
+   "dry_setting": {
+    "dry_duration": -1,
+    "dry_filament": "",
+    "dry_temperature": -1
+   },
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_AMS_3H Zone 2 temperature"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_zone_2_humidity": {
+  "state": "22",
+  "attributes": {
+   "zone": 2,
+   "zone_id": 1,
+   "slots": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    9
+   ],
+   "dry_setting": {
+    "dry_duration": -1,
+    "dry_filament": "",
+    "dry_temperature": -1
+   },
+   "unit_of_measurement": "%",
+   "device_class": "humidity",
+   "friendly_name": "H3C Printer_AMS_3H Zone 2 humidity"
+  }
+ },
+ "sensor.h3c_printer_ams_3h_duration_2": {
+  "state": "0",
+  "attributes": {
+   "zone": 2,
+   "zone_id": 1,
+   "slots": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    9
+   ],
+   "dry_setting": {
+    "dry_duration": -1,
+    "dry_filament": "",
+    "dry_temperature": -1
+   },
+   "unit_of_measurement": "min",
+   "device_class": "duration",
+   "friendly_name": "H3C Printer_AMS_3H Duration"
+  }
+ },
+ "binary_sensor.h3c_printer_externalspool_active": {
+  "state": "off",
+  "attributes": {
+   "device_class": "running",
+   "icon": "mdi:check",
+   "friendly_name": "H3C Printer_ExternalSpool Active",
+   "templates": {
+    "icon_color": "if (state == 'on') return 'var(--green-color,#80C884)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "sensor.h3c_printer_externalspool_external_spool": {
+  "state": "Empty",
+  "attributes": {
+   "active": false,
+   "bed_temp": 0,
+   "color": "#00000000",
+   "cols": [],
+   "ctype": 0,
+   "dry_temp": 0,
+   "dry_time": 0,
+   "empty": true,
+   "unknown": false,
+   "state": 1,
+   "filament_id": "",
+   "tray_weight": 0,
+   "name": "Empty",
+   "nozzle_temp_min": 0,
+   "nozzle_temp_max": 0,
+   "remain": -1,
+   "remain_enabled": false,
+   "tag_uid": "",
+   "tray_uuid": "",
+   "type": "Empty",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_ExternalSpool External spool"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_swaptek_position_raw": {
+  "state": "2",
+  "attributes": {
+   "icon": "mdi:robot-industrial",
+   "friendly_name": "H3C Printer_HotendRack Swaptek position (raw)"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_swaptek_status_raw": {
+  "state": "0",
+  "attributes": {
+   "icon": "mdi:robot-industrial",
+   "friendly_name": "H3C Printer_HotendRack Swaptek status (raw)"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_1": {
+  "state": "docked",
+  "attributes": {
+   "options": [
+    "mounted",
+    "docked",
+    "empty"
+   ],
+   "tool": 1,
+   "filament_diameter": null,
+   "filament_name": null,
+   "filament_type": null,
+   "remaining_weight_g": null,
+   "remaining_percent": null,
+   "ams_id": null,
+   "ams_slot": null,
+   "nozzle_diameter": 0.4,
+   "nozzle_type": "hardened_steel",
+   "nozzle_type_code": "HS01",
+   "max_temperature": 350,
+   "serial": "DEMO_TOOL_001",
+   "filament_id": "GFL99",
+   "color": "#7C4B00FF",
+   "wear": 0.0,
+   "status_raw": 0,
+   "device_class": "enum",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 1"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_1_temperature": {
+  "state": "109.4",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 1 Temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_1_target_temperature": {
+  "state": "32.0",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 1 Target temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_1_print_time": {
+  "state": "2.49",
+  "attributes": {
+   "unit_of_measurement": "h",
+   "device_class": "duration",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 1 Print time"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_2": {
+  "state": "docked",
+  "attributes": {
+   "options": [
+    "mounted",
+    "docked",
+    "empty"
+   ],
+   "tool": 2,
+   "filament_diameter": 1.75,
+   "filament_name": "PETG",
+   "filament_type": "PETG",
+   "remaining_weight_g": null,
+   "remaining_percent": null,
+   "ams_id": 32,
+   "ams_slot": 2,
+   "nozzle_diameter": 0.8,
+   "nozzle_type": "hardened_steel",
+   "nozzle_type_code": "HS01",
+   "max_temperature": 350,
+   "serial": "DEMO_TOOL_002",
+   "filament_id": "GFG03",
+   "color": "#E8DBB7FF",
+   "wear": 0.0,
+   "status_raw": 160,
+   "device_class": "enum",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 2"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_2_temperature": {
+  "state": "109.4",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 2 Temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_2_target_temperature": {
+  "state": "32.0",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 2 Target temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_2_print_time": {
+  "state": "3.44",
+  "attributes": {
+   "unit_of_measurement": "h",
+   "device_class": "duration",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 2 Print time"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_3": {
+  "state": "docked",
+  "attributes": {
+   "options": [
+    "mounted",
+    "docked",
+    "empty"
+   ],
+   "tool": 3,
+   "filament_diameter": null,
+   "filament_name": null,
+   "filament_type": null,
+   "remaining_weight_g": null,
+   "remaining_percent": null,
+   "ams_id": null,
+   "ams_slot": null,
+   "nozzle_diameter": 0.4,
+   "nozzle_type": "hardened_steel",
+   "nozzle_type_code": "HS01",
+   "max_temperature": 350,
+   "serial": "DEMO_TOOL_003",
+   "filament_id": "GFA20",
+   "color": "#0090DAFF",
+   "wear": 0.0,
+   "status_raw": 0,
+   "device_class": "enum",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 3"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_3_temperature": {
+  "state": "109.4",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 3 Temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_3_target_temperature": {
+  "state": "32.0",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 3 Target temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_3_print_time": {
+  "state": "6.15",
+  "attributes": {
+   "unit_of_measurement": "h",
+   "device_class": "duration",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 3 Print time"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_4": {
+  "state": "mounted",
+  "attributes": {
+   "options": [
+    "mounted",
+    "docked",
+    "empty"
+   ],
+   "tool": 4,
+   "filament_diameter": 1.75,
+   "filament_name": "Bambu PETG HF",
+   "filament_type": "PETG",
+   "remaining_weight_g": 961.0,
+   "remaining_percent": 96,
+   "ams_id": 32,
+   "ams_slot": 4,
+   "nozzle_diameter": 0.4,
+   "nozzle_type": "hardened_steel",
+   "nozzle_type_code": "HS01",
+   "max_temperature": 350,
+   "serial": "DEMO_TOOL_004",
+   "filament_id": "GFG02",
+   "color": "#AF7933FF",
+   "wear": 0.0,
+   "status_raw": 176,
+   "device_class": "enum",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 4"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_4_temperature": {
+  "state": "473.0",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 4 Temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_4_target_temperature": {
+  "state": "473.0",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 4 Target temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_4_print_time": {
+  "state": "8.81",
+  "attributes": {
+   "unit_of_measurement": "h",
+   "device_class": "duration",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 4 Print time"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_5": {
+  "state": "docked",
+  "attributes": {
+   "options": [
+    "mounted",
+    "docked",
+    "empty"
+   ],
+   "tool": 5,
+   "filament_diameter": null,
+   "filament_name": null,
+   "filament_type": null,
+   "remaining_weight_g": null,
+   "remaining_percent": null,
+   "ams_id": null,
+   "ams_slot": null,
+   "nozzle_diameter": 0.4,
+   "nozzle_type": "hardened_steel",
+   "nozzle_type_code": "HS01",
+   "max_temperature": 350,
+   "serial": "DEMO_TOOL_005",
+   "filament_id": "GFA20",
+   "color": "#FCE300FF",
+   "wear": 0.0,
+   "status_raw": 0,
+   "device_class": "enum",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 5"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_5_temperature": {
+  "state": "107.6",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 5 Temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_5_target_temperature": {
+  "state": "32.0",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 5 Target temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_5_print_time": {
+  "state": "11.95",
+  "attributes": {
+   "unit_of_measurement": "h",
+   "device_class": "duration",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 5 Print time"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_6": {
+  "state": "docked",
+  "attributes": {
+   "options": [
+    "mounted",
+    "docked",
+    "empty"
+   ],
+   "tool": 6,
+   "filament_diameter": null,
+   "filament_name": null,
+   "filament_type": null,
+   "remaining_weight_g": null,
+   "remaining_percent": null,
+   "ams_id": null,
+   "ams_slot": null,
+   "nozzle_diameter": 0.6,
+   "nozzle_type": "hardened_steel",
+   "nozzle_type_code": "HS01",
+   "max_temperature": 350,
+   "serial": "DEMO_TOOL_006",
+   "filament_id": "GFG03",
+   "color": "#68724DFF",
+   "wear": 0.0,
+   "status_raw": 0,
+   "device_class": "enum",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 6"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_6_temperature": {
+  "state": "105.8",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 6 Temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_6_target_temperature": {
+  "state": "32.0",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 6 Target temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_6_print_time": {
+  "state": "5.78",
+  "attributes": {
+   "unit_of_measurement": "h",
+   "device_class": "duration",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 6 Print time"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_7": {
+  "state": "docked",
+  "attributes": {
+   "options": [
+    "mounted",
+    "docked",
+    "empty"
+   ],
+   "tool": 7,
+   "filament_diameter": null,
+   "filament_name": null,
+   "filament_type": null,
+   "remaining_weight_g": null,
+   "remaining_percent": null,
+   "ams_id": null,
+   "ams_slot": null,
+   "nozzle_diameter": 0.4,
+   "nozzle_type": "hardened_steel",
+   "nozzle_type_code": "HS01",
+   "max_temperature": 350,
+   "serial": "DEMO_TOOL_007",
+   "filament_id": "GFU00",
+   "color": "#000000FF",
+   "wear": 0.0,
+   "status_raw": 160,
+   "device_class": "enum",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 7"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_7_temperature": {
+  "state": "105.8",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 7 Temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_7_target_temperature": {
+  "state": "32.0",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 7 Target temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_7_print_time": {
+  "state": "4.27",
+  "attributes": {
+   "unit_of_measurement": "h",
+   "device_class": "duration",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 7 Print time"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_8": {
+  "state": "docked",
+  "attributes": {
+   "options": [
+    "mounted",
+    "docked",
+    "empty"
+   ],
+   "tool": 8,
+   "filament_diameter": null,
+   "filament_name": null,
+   "filament_type": null,
+   "remaining_weight_g": null,
+   "remaining_percent": null,
+   "ams_id": null,
+   "ams_slot": null,
+   "nozzle_diameter": 0.4,
+   "nozzle_type": "hardened_steel",
+   "nozzle_type_code": "HT01",
+   "max_temperature": 350,
+   "serial": "DEMO_TOOL_008",
+   "filament_id": "GFU06",
+   "color": "#000000FF",
+   "wear": 0.0,
+   "status_raw": 160,
+   "device_class": "enum",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 8"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_8_temperature": {
+  "state": "105.8",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 8 Temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_8_target_temperature": {
+  "state": "32.0",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 8 Target temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_8_print_time": {
+  "state": "4.19",
+  "attributes": {
+   "unit_of_measurement": "h",
+   "device_class": "duration",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 8 Print time"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_9": {
+  "state": "docked",
+  "attributes": {
+   "options": [
+    "mounted",
+    "docked",
+    "empty"
+   ],
+   "tool": 9,
+   "filament_diameter": null,
+   "filament_name": null,
+   "filament_type": null,
+   "remaining_weight_g": null,
+   "remaining_percent": null,
+   "ams_id": null,
+   "ams_slot": null,
+   "nozzle_diameter": 0.4,
+   "nozzle_type": "hardened_steel",
+   "nozzle_type_code": "HS01",
+   "max_temperature": 350,
+   "serial": "DEMO_TOOL_009",
+   "filament_id": "GFG00",
+   "color": "#474747FF",
+   "wear": 0.0,
+   "status_raw": 1,
+   "device_class": "enum",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 9"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_9_temperature": {
+  "state": "105.8",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 9 Temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_9_target_temperature": {
+  "state": "32.0",
+  "attributes": {
+   "unit_of_measurement": "\u00b0F",
+   "device_class": "temperature",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 9 Target temperature"
+  }
+ },
+ "sensor.h3c_printer_hotendrack_printtool_9_print_time": {
+  "state": "11.53",
+  "attributes": {
+   "unit_of_measurement": "h",
+   "device_class": "duration",
+   "friendly_name": "H3C Printer_HotendRack PrintTool 9 Print time"
+  }
+ }
+}

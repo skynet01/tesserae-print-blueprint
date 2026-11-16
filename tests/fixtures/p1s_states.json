@@ -1,0 +1,743 @@
+{
+ "binary_sensor.p1s_printer_recording_timelapse": {
+  "state": "off",
+  "attributes": {
+   "device_class": "running",
+   "icon": "mdi:camera",
+   "friendly_name": "P1S Printer Timelapse"
+  }
+ },
+ "binary_sensor.p1s_printer_extruder_filament_state": {
+  "state": "on",
+  "attributes": {
+   "friendly_name": "P1S Printer Extruder filament"
+  }
+ },
+ "binary_sensor.p1s_printer_hms_errors": {
+  "state": "off",
+  "attributes": {
+   "Count": 0,
+   "device_class": "problem",
+   "friendly_name": "P1S Printer HMS errors"
+  }
+ },
+ "binary_sensor.p1s_printer_print_error": {
+  "state": "off",
+  "attributes": {
+   "device_class": "problem",
+   "friendly_name": "P1S Printer Print error"
+  }
+ },
+ "binary_sensor.p1s_printer_online": {
+  "state": "on",
+  "attributes": {
+   "device_class": "running",
+   "friendly_name": "P1S Printer Online",
+   "templates": {
+    "icon_color": "if (state == 'on') return 'var(--green-color,#80C884)'; return 'var(--red-color,#FF4348)';"
+   }
+  }
+ },
+ "binary_sensor.p1s_printer_firmware_update": {
+  "state": "on",
+  "attributes": {
+   "device_class": "update",
+   "friendly_name": "P1S Printer Firmware"
+  }
+ },
+ "binary_sensor.p1s_printer_ams_active": {
+  "state": "on",
+  "attributes": {
+   "device_class": "running",
+   "icon": "mdi:check",
+   "friendly_name": "P1S_Printer_AMS Active",
+   "templates": {
+    "icon_color": "if (state == 'on') return 'var(--green-color,#80C884)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "button.p1s_printer_pause_printing": {
+  "state": "unknown",
+  "attributes": {
+   "icon": "mdi:pause",
+   "friendly_name": "P1S Printer Pause"
+  }
+ },
+ "button.p1s_printer_resume_printing": {
+  "state": "unavailable",
+  "attributes": {
+   "icon": "mdi:play",
+   "friendly_name": "P1S Printer Resume"
+  }
+ },
+ "button.p1s_printer_stop_printing": {
+  "state": "unknown",
+  "attributes": {
+   "icon": "mdi:stop",
+   "friendly_name": "P1S Printer Stop"
+  }
+ },
+ "button.p1s_printer_force_refresh_data": {
+  "state": "unknown",
+  "attributes": {
+   "icon": "mdi:refresh",
+   "friendly_name": "P1S Printer Force refresh"
+  }
+ },
+ "fan.p1s_printer_cooling_fan": {
+  "state": "on",
+  "attributes": {
+   "preset_modes": null,
+   "percentage": 100,
+   "percentage_step": 1.0,
+   "preset_mode": null,
+   "friendly_name": "P1S Printer Cooling fan",
+   "supported_features": 49,
+   "templates": {
+    "icon_color": "if (state == 'on') return 'var(--state-icon-active-color,#ffc107)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "fan.p1s_printer_aux_fan": {
+  "state": "off",
+  "attributes": {
+   "preset_modes": null,
+   "percentage": 0,
+   "percentage_step": 1.0,
+   "preset_mode": null,
+   "friendly_name": "P1S Printer Aux fan",
+   "supported_features": 49,
+   "templates": {
+    "icon_color": "if (state == 'on') return 'var(--state-icon-active-color,#ffc107)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "fan.p1s_printer_chamber_fan": {
+  "state": "on",
+  "attributes": {
+   "preset_modes": null,
+   "percentage": 70,
+   "percentage_step": 1.0,
+   "preset_mode": null,
+   "friendly_name": "P1S Printer Chamber fan",
+   "supported_features": 49,
+   "templates": {
+    "icon_color": "if (state == 'on') return 'var(--state-icon-active-color,#ffc107)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "image.p1s_printer_cover_image": {
+  "state": "2026-11-13T23:02:32.794952",
+  "attributes": {
+   "access_token": "REDACTED",
+   "entity_picture": "/api/image_proxy/image.p1s_printer_cover_image?token=REDACTED",
+   "friendly_name": "P1S Printer Cover image"
+  }
+ },
+ "image.p1s_printer_pick_image": {
+  "state": "2026-11-13T23:02:32.795093",
+  "attributes": {
+   "access_token": "REDACTED",
+   "entity_picture": "/api/image_proxy/image.p1s_printer_pick_image?token=REDACTED",
+   "friendly_name": "P1S Printer Pick image"
+  }
+ },
+ "light.p1s_printer_chamber_light": {
+  "state": "on",
+  "attributes": {
+   "supported_color_modes": [
+    "onoff"
+   ],
+   "color_mode": "onoff",
+   "icon": "mdi:led-strip-variant",
+   "friendly_name": "P1S Printer Chamber light",
+   "supported_features": 0
+  }
+ },
+ "select.p1s_printer_printing_speed": {
+  "state": "standard",
+  "attributes": {
+   "options": [
+    "silent",
+    "standard",
+    "sport",
+    "ludicrous"
+   ],
+   "icon": "mdi:speedometer",
+   "friendly_name": "P1S Printer Printing speed"
+  }
+ },
+ "sensor.p1s_printer_ams_humidity_index": {
+  "state": "3",
+  "attributes": {
+   "state_class": "measurement",
+   "icon": "mdi:water-percent",
+   "friendly_name": "P1S_Printer_AMS Humidity index"
+  }
+ },
+ "sensor.p1s_printer_ams_status": {
+  "state": "filament_loaded",
+  "attributes": {
+   "options": [
+    "calibration",
+    "changing_filament",
+    "checking_position",
+    "cold_pull",
+    "cutting_filament",
+    "debug",
+    "filament_loaded",
+    "heating_nozzle",
+    "idle",
+    "pulling_back_filament",
+    "purging_old_filament",
+    "pushing_new_filament",
+    "rfid_identifying",
+    "self_check",
+    "unknown"
+   ],
+   "device_class": "enum",
+   "icon": "mdi:swap-horizontal",
+   "friendly_name": "P1S_Printer_AMS Status"
+  }
+ },
+ "sensor.p1s_printer_ams_tray_1": {
+  "state": "Bambu PETG HF",
+  "attributes": {
+   "slot": 1,
+   "filament_diameter": null,
+   "remaining_weight_g": null,
+   "active": true,
+   "bed_temp": "0",
+   "color": "#FFD00BFF",
+   "cols": [
+    "#FFD00BFF"
+   ],
+   "ctype": 0,
+   "dry_temp": "0",
+   "dry_time": "0",
+   "empty": false,
+   "unknown": false,
+   "state": 0,
+   "filament_id": "GFG02",
+   "k_value": 0.019999999552965164,
+   "tray_weight": "0",
+   "name": "Bambu PETG HF",
+   "nozzle_temp_min": "230",
+   "nozzle_temp_max": "270",
+   "remain": -1,
+   "remain_enabled": true,
+   "tag_uid": "0000000000000000",
+   "tray_uuid": "00000000000000000000000000000000",
+   "type": "PETG",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "P1S_Printer_AMS Tray 1"
+  }
+ },
+ "sensor.p1s_printer_ams_tray_2": {
+  "state": "Generic PLA",
+  "attributes": {
+   "slot": 2,
+   "filament_diameter": null,
+   "remaining_weight_g": null,
+   "active": false,
+   "bed_temp": "0",
+   "color": "#D4B1DDFF",
+   "cols": [
+    "#D4B1DDFF"
+   ],
+   "ctype": 0,
+   "dry_temp": "0",
+   "dry_time": "0",
+   "empty": false,
+   "unknown": false,
+   "state": 8,
+   "filament_id": "GFL99",
+   "k_value": 0.019999999552965164,
+   "tray_weight": "0",
+   "name": "Generic PLA",
+   "nozzle_temp_min": "190",
+   "nozzle_temp_max": "240",
+   "remain": -1,
+   "remain_enabled": true,
+   "tag_uid": "0000000000000000",
+   "tray_uuid": "00000000000000000000000000000000",
+   "type": "PLA",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "P1S_Printer_AMS Tray 2"
+  }
+ },
+ "sensor.p1s_printer_ams_tray_3": {
+  "state": "Generic PLA",
+  "attributes": {
+   "slot": 3,
+   "filament_diameter": null,
+   "remaining_weight_g": null,
+   "active": false,
+   "bed_temp": "0",
+   "color": "#0D6284FF",
+   "cols": [
+    "#0D6284FF"
+   ],
+   "ctype": 0,
+   "dry_temp": "0",
+   "dry_time": "0",
+   "empty": false,
+   "unknown": false,
+   "state": 8,
+   "filament_id": "GFL99",
+   "k_value": 0.019999999552965164,
+   "tray_weight": "0",
+   "name": "Generic PLA",
+   "nozzle_temp_min": "190",
+   "nozzle_temp_max": "240",
+   "remain": -1,
+   "remain_enabled": true,
+   "tag_uid": "0000000000000000",
+   "tray_uuid": "00000000000000000000000000000000",
+   "type": "PLA",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "P1S_Printer_AMS Tray 3"
+  }
+ },
+ "sensor.p1s_printer_ams_tray_4": {
+  "state": "Bambu PETG HF",
+  "attributes": {
+   "slot": 4,
+   "filament_diameter": null,
+   "remaining_weight_g": null,
+   "active": false,
+   "bed_temp": "0",
+   "color": "#515151FF",
+   "cols": [
+    "#515151FF"
+   ],
+   "ctype": 0,
+   "dry_temp": "0",
+   "dry_time": "0",
+   "empty": false,
+   "unknown": false,
+   "state": 0,
+   "filament_id": "GFG02",
+   "k_value": 0.019999999552965164,
+   "tray_weight": "0",
+   "name": "Bambu PETG HF",
+   "nozzle_temp_min": "230",
+   "nozzle_temp_max": "270",
+   "remain": -1,
+   "remain_enabled": true,
+   "tag_uid": "0000000000000000",
+   "tray_uuid": "00000000000000000000000000000000",
+   "type": "PETG",
+   "icon": "mdi:printer-3d-nozzle",
+   "friendly_name": "P1S_Printer_AMS Tray 4"
+  }
+ },
+ "sensor.p1s_printer_bed_temperature": {
+  "state": "70",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "\u00b0C",
+   "device_class": "temperature",
+   "friendly_name": "P1S Printer Bed temperature"
+  }
+ },
+ "sensor.p1s_printer_bed_target_temperature": {
+  "state": "70",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "\u00b0C",
+   "device_class": "temperature",
+   "friendly_name": "P1S Printer Bed target temperature"
+  }
+ },
+ "sensor.p1s_printer_nozzle_temperature": {
+  "state": "245",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "\u00b0C",
+   "device_class": "temperature",
+   "friendly_name": "P1S Printer Nozzle temperature"
+  }
+ },
+ "sensor.p1s_printer_nozzle_target_temperature": {
+  "state": "245",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "\u00b0C",
+   "device_class": "temperature",
+   "friendly_name": "P1S Printer Nozzle target temperature"
+  }
+ },
+ "sensor.p1s_printer_aux_fan_speed": {
+  "state": "0",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "%",
+   "friendly_name": "P1S Printer Aux fan speed",
+   "templates": {
+    "icon_color": "if (state > 10) return 'var(--green-color,#80C884)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "sensor.p1s_printer_chamber_fan_speed": {
+  "state": "70",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "%",
+   "friendly_name": "P1S Printer Chamber fan speed",
+   "templates": {
+    "icon_color": "if (state > 10) return 'var(--green-color,#80C884)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "sensor.p1s_printer_cooling_fan_speed": {
+  "state": "100",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "%",
+   "friendly_name": "P1S Printer Cooling fan speed",
+   "templates": {
+    "icon_color": "if (state > 10) return 'var(--green-color,#80C884)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "sensor.p1s_printer_heatbreak_fan_speed": {
+  "state": "100",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "%",
+   "friendly_name": "P1S Printer Heatbreak fan speed",
+   "templates": {
+    "icon_color": "if (state > 10) return 'var(--green-color,#80C884)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "sensor.p1s_printer_model_download": {
+  "state": "100",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "%",
+   "friendly_name": "P1S Printer Model download"
+  }
+ },
+ "sensor.p1s_printer_speed_profile": {
+  "state": "standard",
+  "attributes": {
+   "options": [
+    "silent",
+    "standard",
+    "sport",
+    "ludicrous"
+   ],
+   "modifier": 100,
+   "device_class": "enum",
+   "friendly_name": "P1S Printer Speed profile"
+  }
+ },
+ "sensor.p1s_printer_current_stage": {
+  "state": "printing",
+  "attributes": {
+   "options": [
+    "paused_first_layer_error",
+    "checking_extruder_temperature",
+    "unknown",
+    "m400_pause",
+    "cooling_chamber",
+    "heating_chamber",
+    "calibrate_nozzle_offset",
+    "calibrating_camera_offset",
+    "laser_calibration",
+    "auto_bed_leveling",
+    "waiting_for_heatbed_temperature",
+    "preparing_ams",
+    "cleaning_nozzle_tip",
+    "cooling_nozzle",
+    "check_absolute_accuracy_before_calibration",
+    "sweeping_xy_mech_mode",
+    "printing",
+    "bed_level_high_temperature",
+    "paused_chamber_temperature_control_error",
+    "calibrating_detection_nozzle_clumping",
+    "heatbed_stabilizing",
+    "measuring_surface",
+    "heatbed_underside_foreign_object_detection",
+    "scanning_bed_surface",
+    "thermal_preconditioning",
+    "bed_level_phase_2",
+    "measuring_rotary_attachment",
+    "filament_unloading",
+    "pre_extrusion_before_printing",
+    "filament_loading",
+    "check_door_and_cover",
+    "hotend_type_detection",
+    "paused_user",
+    "moving_toolhead_to_center_of_heatbed",
+    "check_plaform",
+    "paused_heat_bed_temperature_malfunction",
+    "idle",
+    "paused_ams_lost",
+    "paused_low_fan_speed_heat_break",
+    "preparing_hotend",
+    "paused_filament_runout",
+    "paused_user_gcode",
+    "build_plate_alignment_detection",
+    "homing_blade_holder",
+    "heated_bedcooling",
+    "paused_skipped_step",
+    "active_arc_fitting",
+    "homing_toolhead",
+    "calibrating_cutter_model_offset",
+    "bed_level_phase_1",
+    "paused_cutter_error",
+    "absolute_accuracy_calibration",
+    "calibrating_extrusion",
+    "changing_filament",
+    "check_absolute_accuracy_after_calibration",
+    "print_calibration_lines",
+    "waiting_chamber_temperature_equalize",
+    "hotend_pick_place_test",
+    "calibrate_birdeye_camera",
+    "calibrating_micro_lidar",
+    "calibrating_blade_holder_position",
+    "paused_nozzle_clog",
+    "calibrating_live_view_camera",
+    "motor_noise_showoff",
+    "check_quick_release",
+    "moving_toolhead_above_purge_chute",
+    "identifying_build_plate_type",
+    "calibrating_extrusion_flow",
+    "check_material_position",
+    "calibrating_motor_noise",
+    "paused_nozzle_temperature_malfunction",
+    "paused_nozzle_filament_covered_detected",
+    "heatbed_preheating",
+    "check_material",
+    "inspecting_first_layer",
+    "purifying_chamber_air",
+    "heatbed_surface_foreign_object_detection",
+    "check_birdeye_camera_position",
+    "paused_front_cover_falling",
+    "heating_hotend",
+    "offline"
+   ],
+   "planned_stages": [
+    "waiting_for_heatbed_temperature",
+    "cleaning_nozzle_tip",
+    "auto_bed_leveling"
+   ],
+   "step": null,
+   "total_steps": 3,
+   "device_class": "enum",
+   "friendly_name": "P1S Printer Current stage"
+  }
+ },
+ "sensor.p1s_printer_print_progress": {
+  "state": "72",
+  "attributes": {
+   "state_class": "measurement",
+   "unit_of_measurement": "%",
+   "friendly_name": "P1S Printer Print progress"
+  }
+ },
+ "sensor.p1s_printer_print_status": {
+  "state": "running",
+  "attributes": {
+   "options": [
+    "failed",
+    "finish",
+    "idle",
+    "init",
+    "offline",
+    "pause",
+    "prepare",
+    "running",
+    "slicing",
+    "unknown",
+    "offline"
+   ],
+   "device_class": "enum",
+   "friendly_name": "P1S Printer Print status"
+  }
+ },
+ "sensor.p1s_printer_printable_objects": {
+  "state": "2",
+  "attributes": {
+   "state_class": "measurement",
+   "objects": {
+    "3993": "Test plate",
+    "4004": "Bolt.stl"
+   },
+   "friendly_name": "P1S Printer Printable objects"
+  }
+ },
+ "sensor.p1s_printer_skipped_objects": {
+  "state": "0",
+  "attributes": {
+   "state_class": "measurement",
+   "objects": [],
+   "friendly_name": "P1S Printer Skipped objects"
+  }
+ },
+ "sensor.p1s_printer_start_time": {
+  "state": "2026-11-14T06:00:08+00:00",
+  "attributes": {
+   "device_class": "timestamp",
+   "friendly_name": "P1S Printer Start time"
+  }
+ },
+ "sensor.p1s_printer_remaining_time": {
+  "state": "62",
+  "attributes": {
+   "unit_of_measurement": "min",
+   "device_class": "duration",
+   "friendly_name": "P1S Printer Remaining time"
+  }
+ },
+ "sensor.p1s_printer_end_time": {
+  "state": "2026-11-14T09:55:00+00:00",
+  "attributes": {
+   "device_class": "timestamp",
+   "friendly_name": "P1S Printer End time"
+  }
+ },
+ "sensor.p1s_printer_total_usage": {
+  "state": "1523.65",
+  "attributes": {
+   "state_class": "total_increasing",
+   "unit_of_measurement": "h",
+   "device_class": "duration",
+   "friendly_name": "P1S Printer Total usage"
+  }
+ },
+ "sensor.p1s_printer_current_layer": {
+  "state": "501",
+  "attributes": {
+   "state_class": "measurement",
+   "friendly_name": "P1S Printer Current layer"
+  }
+ },
+ "sensor.p1s_printer_total_layer_count": {
+  "state": "856",
+  "attributes": {
+   "state_class": "measurement",
+   "friendly_name": "P1S Printer Total layer count"
+  }
+ },
+ "sensor.p1s_printer_gcode_filename": {
+  "state": "Synthetic_Plate.3mf",
+  "attributes": {
+   "icon": "mdi:cloud-outline",
+   "friendly_name": "P1S Printer Gcode filename"
+  }
+ },
+ "sensor.p1s_printer_task_name": {
+  "state": "Synthetic_Plate",
+  "attributes": {
+   "ams_mapping": [
+    {
+     "ams": 0,
+     "tray": 0
+    }
+   ],
+   "icon": "mdi:cloud-outline",
+   "friendly_name": "P1S Printer Task name"
+  }
+ },
+ "sensor.p1s_printer_print_type": {
+  "state": "cloud",
+  "attributes": {
+   "options": [
+    "local",
+    "cloud",
+    "idle",
+    "system",
+    "unknown"
+   ],
+   "device_class": "enum",
+   "icon": "mdi:cloud-outline",
+   "friendly_name": "P1S Printer Print type"
+  }
+ },
+ "sensor.p1s_printer_print_length": {
+  "state": "79.1666666666667",
+  "attributes": {
+   "state_class": "measurement",
+   "AMS 1 Tray 1": 24.13,
+   "unit_of_measurement": "ft",
+   "device_class": "distance",
+   "friendly_name": "P1S Printer Print length"
+  }
+ },
+ "sensor.p1s_printer_print_weight": {
+  "state": "74.28",
+  "attributes": {
+   "state_class": "measurement",
+   "AMS 1 Tray 1": 74.28,
+   "unit_of_measurement": "g",
+   "device_class": "weight",
+   "friendly_name": "P1S Printer Print weight"
+  }
+ },
+ "sensor.p1s_printer_active_tray": {
+  "state": "Bambu PETG HF",
+  "attributes": {
+   "ams_index": 0,
+   "bed_temp": "0",
+   "color": "#FFD00BFF",
+   "cols": [
+    "#FFD00BFF"
+   ],
+   "ctype": 0,
+   "dry_temp": "0",
+   "dry_time": "0",
+   "filament_id": "GFG02",
+   "k_value": 0.019999999552965164,
+   "tray_weight": "0",
+   "name": "Bambu PETG HF",
+   "nozzle_temp_min": "230",
+   "nozzle_temp_max": "270",
+   "remain": -1,
+   "remain_enabled": true,
+   "tag_uid": "0000000000000000",
+   "tray_index": 0,
+   "tray_uuid": "00000000000000000000000000000000",
+   "type": "PETG",
+   "friendly_name": "P1S Printer Active tray"
+  }
+ },
+ "sensor.p1s_printer_nozzle_size": {
+  "state": "0.015748031496063",
+  "attributes": {
+   "unit_of_measurement": "in",
+   "device_class": "distance",
+   "friendly_name": "P1S Printer Nozzle size"
+  }
+ },
+ "sensor.p1s_printer_serial_number": {
+  "state": "DEMO_P1S_001",
+  "attributes": {
+   "friendly_name": "P1S Printer Serial number"
+  }
+ },
+ "switch.p1s_printer_enable_camera": {
+  "state": "on",
+  "attributes": {
+   "icon": "mdi:video",
+   "friendly_name": "P1S Printer Camera",
+   "templates": {
+    "icon_color": "if (state === 'on') return 'var(--state-icon-active-color,#ffc107)'; return 'var(--state-icon-color,#4a6185)';"
+   }
+  }
+ },
+ "camera.p1s_printer_camera": {
+  "state": "streaming",
+  "attributes": {
+   "access_token": "REDACTED",
+   "brand": "Bambu Lab",
+   "entity_picture": "/api/camera_proxy/camera.p1s_printer_camera?token=REDACTED",
+   "icon": "mdi:camera",
+   "friendly_name": "P1S Printer Camera",
+   "supported_features": 0
+  }
+ }
+}

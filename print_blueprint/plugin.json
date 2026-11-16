@@ -1,0 +1,173 @@
+{
+  "tesserae_compat": "1.x",
+  "tesserae_min": "0.484.1",
+  "name": "Home Assistant, Print Blueprint",
+  "version": "0.1.0",
+  "kind": "widget",
+  "overrides_look": "Draws its own paper colours",
+  "locales": ["en"],
+  "description": "Shows what your Bambu Lab printer is printing as a blueprint of the part, with live print data from Home Assistant. Needs the Bambu Lab integration: https://github.com/greghesp/ha-bambulab",
+  "icon": "ph-printer",
+  "category": "home-assistant",
+  "supports": {
+    "sizes": ["sm", "md", "lg"]
+  },
+  "cell_options": [
+    {
+      "name": "printer",
+      "type": "select",
+      "label": "Printer",
+      "default": "",
+      "choices_from": "printer",
+      "help": "Any printer from the Bambu Lab integration in Home Assistant. Blank shows the first one found."
+    },
+    {
+      "name": "method",
+      "type": "select",
+      "label": "Picture",
+      "default": "toolpath",
+      "choices_from": "method",
+      "choices": [
+        { "value": "toolpath", "label": "Toolpaths", "image": "/plugins/print_blueprint/example/toolpath.png?w=1200&h=800&thumb=1" },
+        { "value": "preview", "label": "Line art from the preview", "image": "/plugins/print_blueprint/example/preview.png?w=1200&h=800&thumb=1" },
+        { "value": "ai", "label": "AI engraving", "image": "/plugins/print_blueprint/example/ai.png?w=1200&h=800&thumb=1" }
+      ],
+      "help": "Availability depends on the printer. Save and reopen to refresh. Toolpaths draws the real paths from the sliced file. Line art traces the slicer preview and also works for cloud prints. AI engraving repaints the preview once per print with kie.ai (about US$0.02, needs the kie.ai key in the widget settings). Compare all three for your current print at /plugins/print_blueprint/compare"
+    },
+    {
+      "name": "editor_preview",
+      "type": "select",
+      "label": "Preview",
+      "default": "example",
+      "choices": [
+        { "value": "example", "label": "Example (T800)" },
+        { "value": "live", "label": "Live print" }
+      ],
+      "help": "Only affects previews. Example works offline. Live print draws free toolpaths or line art; the example stays until that method is ready. AI uses an existing engraving only; a real screen render must create it first."
+    },
+    {
+      "name": "background",
+      "type": "select",
+      "label": "Paper",
+      "default": "blue",
+      "choices": [
+        { "value": "blue", "label": "Blueprint" },
+        { "value": "white", "label": "White" },
+        { "value": "black", "label": "Black" }
+      ]
+    },
+    {
+      "name": "show_progress",
+      "type": "boolean",
+      "label": "Show progress",
+      "default": true,
+      "help": "Printed layers solid, the rest dashed, with the nozzle's layer marked. Off draws the finished part."
+    },
+    {
+      "name": "button_cycles_background",
+      "type": "boolean",
+      "label": "Refresh button cycles the background",
+      "default": true,
+      "help": "On: each press of the refresh button goes white, blue, black (map it to the print_blueprint_cycle action). Off: the button just redraws the frame with the latest sensor data."
+    },
+    {
+      "name": "idle",
+      "type": "select",
+      "label": "When idle",
+      "default": "last",
+      "choices": [
+        { "value": "last", "label": "Show the last print" },
+        { "value": "empty", "label": "Show no print running" }
+      ]
+    },
+    {
+      "name": "panel",
+      "type": "select",
+      "label": "Panel",
+      "default": "auto",
+      "advanced": true,
+      "choices": [
+        { "value": "auto", "label": "Auto (the screen's own)" },
+        { "value": "colour", "label": "Colour" },
+        { "value": "grey16", "label": "16 greys" },
+        { "value": "grey4", "label": "4 greys" },
+        { "value": "spectra", "label": "Spectra 6" },
+        { "value": "bw", "label": "Black and white" }
+      ],
+      "help": "Auto reads the panel of the screen the sheet is drawn for; colour where it can't tell."
+    },
+    {
+      "name": "show_icons",
+      "type": "boolean",
+      "label": "Icons",
+      "default": true,
+      "advanced": true
+    },
+    {
+      "name": "callout_notes",
+      "type": "boolean",
+      "label": "Callout notes",
+      "default": true,
+      "advanced": true,
+      "help": "The small lines under each callout's heading."
+    },
+    {
+      "name": "fill_space",
+      "type": "boolean",
+      "label": "Sensor panels",
+      "default": true,
+      "advanced": true,
+      "help": "Temperatures, AMS, fans and machine panels in empty side space on wide sheets."
+    },
+    {
+      "name": "show_grid",
+      "type": "boolean",
+      "label": "Blueprint grid",
+      "default": true,
+      "advanced": true,
+      "show_if": {"background": "blue"},
+      "help": "The grid lines on blueprint paper. White and black paper have none."
+    },
+    {
+      "name": "show_subtitle",
+      "type": "boolean",
+      "label": "Title line",
+      "default": true,
+      "advanced": true,
+      "help": "The printer line under the title."
+    }
+  ],
+  "settings": [
+    {
+      "name": "kie_api_key",
+      "type": "string",
+      "label": "kie.ai API key",
+      "secret": true,
+      "default": "",
+      "help": "Only for the AI engraving picture. Get one at kie.ai/api-key."
+    },
+    {
+      "name": "ai_daily_cap",
+      "type": "number",
+      "label": "AI pictures per day",
+      "default": 12,
+      "advanced": true,
+      "help": "At most this many AI pictures a day across all printers. One picture per print, about US$0.02 each."
+    }
+  ],
+  "requires": [
+    "network:*",
+    "settings:plugin"
+  ],
+  "render": {
+    "needs_network": true,
+    "full_bleed": true,
+    "dither": "none",
+    "per_device_id": true,
+    "per_placement": true,
+    "warm_ahead_s": 90
+  },
+  "design": {
+    "palette": "extended"
+  }
+}
