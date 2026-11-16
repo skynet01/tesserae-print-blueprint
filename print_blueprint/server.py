@@ -510,7 +510,7 @@ def draw(job: PrintJob, size: tuple[int, int], opts: SheetOptions, ai_png: bytes
         if opts.method == "toolpath" and job.slice is not None and job.slice.gcode:
             if not walls:
                 walls.append(walls_for(job.slice, job.job_key))
-            return toolpath_art(job.slice, box, progress, u=u, walls=walls[0])
+            return toolpath_art(job.slice, box, progress, az=-55, u=u, walls=walls[0])
         if src:
             try:
                 return preview_art(src, box)
@@ -518,7 +518,10 @@ def draw(job: PrintJob, size: tuple[int, int], opts: SheetOptions, ai_png: bytes
                 log.warning("print_blueprint: unreadable preview picture", exc_info=True)
         return _empty_art()
 
-    img, _ = render_sheet(job, art_fn, size, opts, note=note)
+    # All three methods use the same callouts, so the picture gets the same room on the glass:
+    # the toolpath-only callouts would otherwise push its hero aside and make it smaller.
+    layout_opts = dataclasses.replace(opts, method="preview") if opts.method == "toolpath" else opts
+    img, _ = render_sheet(job, art_fn, size, layout_opts, note=note)
     img.info["note"] = note  # kept in the PNG by png_bytes, read back by _sheet_note
     return img
 

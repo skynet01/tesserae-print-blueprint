@@ -338,7 +338,7 @@ def test_bad_option_values_fall_back_to_defaults(server):
 def test_show_progress_false_draws_the_finished_part(server, monkeypatch):
     job = corpus.job_from_3mf(BLOCK, progress=0.3)
     seen = []
-    monkeypatch.setattr(server, "toolpath_art", lambda facts, box, progress, u=None, walls=None: seen.append(progress) or
+    monkeypatch.setattr(server, "toolpath_art", lambda facts, box, progress, az=-35, u=None, walls=None: seen.append(progress) or
                         server.preview_art(corpus.SYNTHETIC_COVER.read_bytes(), box))
     server.draw(job, SIZE, server.sheet_options({"show_progress": False}, "colour"))
     server.draw(job, SIZE, server.sheet_options({}, "colour"))
@@ -795,3 +795,18 @@ def test_blank_printer_means_the_first_one(server, monkeypatch):
     _wire_two(server, monkeypatch, key="k")
     first = server.printer_prefixes(server._core().get_states())[0][0]
     assert ("disabled" in _rows(server)["toolpath"]) == (first == "h3c_printer")
+
+
+def test_toolpath_sheet_lays_out_like_the_other_methods(server):
+    """Real frames: the picture must get the same room whichever method draws it."""
+    from blueprint.layout import compose
+    job = corpus.job_from_3mf(BLOCK, progress=0.3)
+    seen = []
+    real = server.render_sheet
+    server.render_sheet = lambda j, art, size, opts, note="": (seen.append(opts.method), real(j, art, size, opts, note=note))[1]
+    try:
+        for method in ("toolpath", "preview"):
+            server.draw(job, SIZE, server.sheet_options({"method": method}, "colour"))
+    finally:
+        server.render_sheet = real
+    assert seen == ["preview", "preview"]

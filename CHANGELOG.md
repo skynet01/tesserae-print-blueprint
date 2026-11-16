@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Toolpaths, line art and AI engraving give the picture the same room on the glass.
 - Preview line art keeps fine details with sharp contours and lighter, separated shadow strokes.
 - Preview each method with a bundled T800 example; choose Live print for free live previews.
 - Method thumbnails follow the cell's shape, paper and panel.
