@@ -63,7 +63,7 @@ The sheet is drawn for the panel it ends up on. With **Panel** on Auto (the defa
 
 On wide sheets the empty side space can hold sensor panels (temperatures, AMS slots, fans, machine hours) when the printer reports them and the part still has room. **Sensor panels** turns that off.
 
-Tool racks show each nozzle's known filament name and a colour swatch beside its status and hours. The mounted nozzle stays marked ACTIVE. Grey and black-and-white panels use an outlined, hatched swatch; Spectra uses its nearest native ink. Nozzles with no known filament keep their status and hours.
+Tool racks show each nozzle's known filament name and a colour swatch after its T number, with dotted leaders to the status and hours. The mounted nozzle is marked ACTIVE on the right. Long names end in an ellipsis to leave room for the leader. Grey and black-and-white panels use an outlined, hatched swatch; Spectra uses its nearest native ink. Nozzles with no known filament keep their status and hours.
 
 ## Other options
 

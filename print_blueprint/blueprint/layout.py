@@ -201,14 +201,14 @@ class Group:
         sh.block(self.box, self.name)
 
 
-def _fit_text(s: str, size: float, width: float) -> str | None:
-    """s, cut with '..' until it is at most width wide (None if nothing useful is left)."""
+def _fit_text(s: str, size: float, width: float, ellipsis: str = "..") -> str | None:
+    """s, cut with an ellipsis until it fits (None if nothing useful is left)."""
     if tlen(s, size) <= width:
         return s
     while len(s) > 2:
         s = s[:-1].rstrip()
-        if tlen(s + "..", size) <= width:
-            return s + ".."
+        if tlen(s + ellipsis, size) <= width:
+            return s + ellipsis
     return None
 
 
@@ -714,27 +714,30 @@ def rack_group(job: PrintJob, m: Metrics, w: float) -> Group | None:
     g = Group(m, "rack")
     fs = m.rack
     y = dotted_rows(g, 0, 0, w, [], fs, head="TOOL RACK")
-    labels = [f"T{t.id}" + (" · ACTIVE" if t.state == "mounted" else "") for t in job.tools]
+    labels = [f"T{t.id}" for t in job.tools]
     chip_x = max(tlen(label, fs) for label in labels) + 4 * m.tm
     chip = fs * 0.7
     name_x = chip_x + chip + 3 * m.tm
     for t, label in zip(job.tools, labels):
         hrs = f"{t.hours:.1f} H" if t.hours and t.hours > 0 else ""
         if t.state == "mounted":
-            parts = [t.filament.upper() if t.filament else "", f"{t.temp_c:.0f} °C" if t.temp_c is not None and t.temp_c > 0 else "", hrs]
-            value = " · ".join(p for p in parts if p) or "MOUNTED"
-            detail = " · ".join(p for p in parts[1:] if p)
+            parts = ["ACTIVE", f"{t.temp_c:.0f} °C" if t.temp_c is not None and t.temp_c > 0 else "", hrs]
+            detail = " · ".join(p for p in parts if p)
         else:
-            value = detail = " · ".join(p for p in (t.state.upper(), hrs) if p)
-        room = w - name_x - tlen(detail, fs) - 4 * m.tm
-        name = _fit_text(clean(t.filament.upper()), fs, room) if t.filament else None
+            detail = " · ".join(p for p in (t.state.upper(), hrs) if p)
+        # Reserve a short leader even when a filament's brand name fills its column.
+        room = w - name_x - tlen(detail, fs) - 4 * m.tm - 2 * m.u - 2 * fs
+        name = _fit_text(clean(t.filament.upper()), fs, room, ellipsis="...") if t.filament else None
         if not name:
-            y = dotted_rows(g, 0, y, w, [(label, value)], fs)
+            y = dotted_rows(g, 0, y, w, [(label, detail)], fs)
             continue
         g.text((0, y), label, fs)
-        g.text((name_x, y), name, fs)
-        if detail:
-            g.text((w, y), detail, fs, anchor="ra")
+        nb = g.text((name_x, y), name, fs)
+        vb = g.text((w, y), detail, fs, anchor="ra")
+        if t.state == "mounted":
+            ax, ay = vb[0] + m.tm, vb[3] - m.tm + 1.5 * m.u
+            g.line([(ax, ay), (ax + tlen("ACTIVE", fs), ay)], k=0.8)
+        g.dots(nb[2] + m.u, vb[0] - m.u, y + fs * 0.8, fs * 0.42)
         box = (chip_x, y + fs * 0.25, chip_x + chip, y + fs * 0.95)
         g.ops.append(("swatch", *box, t.color))
         g.extra.append(box)

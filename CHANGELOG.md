@@ -4,6 +4,7 @@
 
 - Give AI sheets 15 extra seconds before using line art on screens.
 - Show each tool rack nozzle's filament name and swatch, with hatching on mono panels.
+- Align tool-rack filaments, keep dotted leaders and move ACTIVE to the status column.
 
 ## 0.1.2
 

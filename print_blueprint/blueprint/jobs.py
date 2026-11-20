@@ -38,7 +38,7 @@ AI_RETRY_S = 6 * 3600
 FAIL_RETRY_S = 300
 TIME_STEP_S = 600  # without the progress option a live sheet is redrawn this often (times, ETA)
 FAMILY_LEN = 24
-DRAWING_REV = 2  # invalidate sheets drawn before filament names and swatches in the tool rack
+DRAWING_REV = 3  # invalidate sheets drawn before aligned rack filaments and status leaders
 
 # render_fn(job, size, opts, ai_png, note) -> sheet; note is the footnote to draw into it
 RenderFn = Callable[[PrintJob, tuple, SheetOptions, "bytes | None", str], Image.Image]

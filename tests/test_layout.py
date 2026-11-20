@@ -532,7 +532,14 @@ def test_tool_rack_has_filament_swatches_without_text_collisions(panel):
     group = rack_group(job, Metrics(1200, 1600), 475)
     text = [s for s, _ in group.texts]
     assert 'BAMBU PLA BASIC' in text and 'SIRAYA TECH TPU-GF' in text
-    assert 'T1 · ACTIVE' in text and 'DOCKED · 1.0 H' in text
+    assert 'T1' in text and 'ACTIVE · 220 °C · 2.6 H' in text and 'DOCKED · 1.0 H' in text
+    assert next(op[-1] for op in group.ops if op[0] == 'text' and op[2].startswith('ACTIVE')) == 'ink'
+    assert not any(s.startswith('T1 ·') for s in text)
+    leaders = [op for op in group.ops if op[0] == 'dots']
+    assert len(leaders) == 3
+    assert all(op[2] - op[1] >= 2 * group.m.rack for op in leaders)
+    assert len({op[1] for op in group.ops if op[0] == 'swatch'}) == 1
+    assert swatch_label_gap(group) < 20
     swatches = [op for op in group.ops if op[0] == 'swatch']
     assert len(swatches) == 2
     for i, (_, a) in enumerate(group.texts):
@@ -551,3 +558,24 @@ def test_tool_rack_has_filament_swatches_without_text_collisions(panel):
     moved = group.moved(10, 20)
     moved_swatch = next(op for op in moved.ops if op[0] == 'swatch')
     assert moved_swatch[1:5] == tuple(v + d for v, d in zip(swatches[0][1:5], (10, 20, 10, 20)))
+
+
+def swatch_label_gap(group):
+    label = next(b for s, b in group.texts if s == 'T1')
+    chip = next(op for op in group.ops if op[0] == 'swatch')
+    return chip[1] - label[2]
+
+
+def test_tool_rack_long_name_keeps_an_ellipsis_and_short_leader():
+    from blueprint.layout import Metrics, rack_group
+    from blueprint.model import Tool
+    job = dataclasses.replace(corpus.h3c_job(), tools=[
+        Tool(1, 'mounted', 'A VERY LONG FILAMENT BRAND AND MATERIAL NAME', 220, 3.0, '#FF0000'),
+        Tool(2, 'docked', 'PLA', 32, 4.0, '#FFFFFF'),
+    ])
+    group = rack_group(job, Metrics(1200, 1600), 475)
+    names = [s for s, _ in group.texts if s.startswith('A VERY')]
+    assert len(names) == 1 and names[0].endswith('...')
+    leaders = [op for op in group.ops if op[0] == 'dots']
+    assert len(leaders) == 2
+    assert all(op[2] - op[1] >= 2 * group.m.rack for op in leaders)
