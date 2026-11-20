@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## 0.1.3
+
 - Keep white paper flat and use black ink for grey sheets on colour panels.
 - Control the grid on every paper and cell look, with existing paper defaults preserved.
 - Honour explicit cell colours and local fonts; Use dashboard keeps the widget's Paper.
