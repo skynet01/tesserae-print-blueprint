@@ -76,6 +76,13 @@ def test_manifest_valid(app: Flask) -> None:
     assert registry.get(PLUGIN) is not None
     assert not [e for e in registry.errors if e.plugin_id == PLUGIN]
     assert "print_blueprint_admin.image" in app.config["RENDER_SAFE_ENDPOINTS"]
+    from app.option_conditions import canonical_value, option_visible
+    specs = registry.get(PLUGIN).manifest['cell_options']
+    grid = next(s for s in specs if s['name'] == 'show_grid')
+    for paper in ('blue','white','black'):
+        assert option_visible(grid, {'background':paper}, specs)
+    assert canonical_value(grid, True) == 'auto'
+    assert canonical_value(grid, False) == 'off'
 
 
 def test_not_listed_as_an_admin_page(app: Flask, client: FlaskClient) -> None:

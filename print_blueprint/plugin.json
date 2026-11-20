@@ -121,12 +121,16 @@
     },
     {
       "name": "show_grid",
-      "type": "boolean",
+      "type": "select",
       "label": "Blueprint grid",
-      "default": true,
+      "default": "auto",
       "advanced": true,
-      "show_if": {"background": "blue"},
-      "help": "The grid lines on blueprint paper. White and black paper have none."
+      "choices": [
+        {"value": "auto", "label": "Paper default", "aliases": [true, "true", "1", "yes"]},
+        {"value": "on", "label": "On"},
+        {"value": "off", "label": "Off", "aliases": [false, "false", "0", "no"]}
+      ],
+      "help": "Default: on for blueprint and cell looks, off for white and black. On or Off overrides it."
     },
     {
       "name": "show_subtitle",

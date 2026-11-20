@@ -76,6 +76,8 @@ Tool racks show each nozzle's known filament name and a colour swatch after its 
 - **Refresh button cycles the background**: on by default. See below.
 - Under More options: **Icons**, **Callout notes**, **Grid** and **Title line** (the printer line under the title).
 
+**Blueprint grid** works on every paper and cell look. Paper default keeps it on for blueprint paper and explicit cell looks, off for white and black paper. On and Off override that default. The border, title block and drawing-frame coordinates stay when the background grid is off.
+
 ## Refresh button
 
 The widget adds a button action, `print_blueprint_cycle`. Each press moves that device's background white, blue, black, white, and repaints the panel in the same wake. The first press starts from the cell's own background. Map it under the device's Controls, Button map: `{"refresh": "print_blueprint_cycle"}` (or `"b"` for the physical key). Turn off *Refresh button cycles the background* in the cell options and the same mapping just redraws the frame with the latest sensor data.

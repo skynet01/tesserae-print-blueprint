@@ -380,6 +380,16 @@ def _bool(v: Any, default: bool) -> bool:
     return default
 
 
+def _grid_option(value: Any) -> bool | None:
+    # The old True flag was ignored on white/black paper, so it means paper default.
+    raw = str(value).strip().lower()
+    if raw == "on":
+        return True
+    if raw in ("false", "off", "0", "no"):
+        return False
+    return None
+
+
 def sheet_options(options: dict, panel: str) -> SheetOptions:
     method = str(options.get("method") or "toolpath")
     bg = str(options.get("background") or "blue")
@@ -390,7 +400,7 @@ def sheet_options(options: dict, panel: str) -> SheetOptions:
         show_icons=_bool(options.get("show_icons"), True),
         callout_notes=_bool(options.get("callout_notes"), True),
         fill_space=_bool(options.get("fill_space"), True),
-        show_grid=_bool(options.get("show_grid"), True),
+        show_grid=_grid_option(options.get("show_grid")),
         show_subtitle=_bool(options.get("show_subtitle"), True),
         show_progress=_bool(options.get("show_progress"), True),
     )
@@ -975,6 +985,7 @@ def _example_url(method: str, options: dict | None = None) -> str:
     # The image is small, but is laid out at the real cell size before reduction.
     opts = sheet_options(values, resolve_panel(values.get("panel"), context))
     query = {"w": size[0], "h": size[1], **dataclasses.asdict(opts)}
+    query["show_grid"] = "auto" if opts.show_grid is None else "on" if opts.show_grid else "off"
     query.pop("palette")
     query.pop("font_path")
     look = cell_look.saved(context, values)

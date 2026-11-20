@@ -268,7 +268,7 @@ def test_every_sheet_option_is_in_the_key():
     base = cache_key(job("a"), SIZE, OPTS)
     for f in dataclasses.fields(SheetOptions):
         v = getattr(OPTS, f.name)
-        other = (not v) if isinstance(v, bool) else (
+        other = True if v is None else (not v) if isinstance(v, bool) else (
             ("#000000", "#ffffff", "#555555", "#ff0000") if isinstance(v, tuple) else v + "x")
         assert cache_key(job("a"), SIZE, dataclasses.replace(OPTS, **{f.name: other}))[:24] != base[:24], f.name
 

@@ -808,7 +808,6 @@ def frame(sh: Sheet, background: str, m: Metrics, show_grid: bool) -> Box:
     W, H, u = m.w, m.h, m.u
     if background == "blue":
         o, z = 26 * u, 16 * u
-        sh.ops.append(("grid", show_grid, o + z, o + z, W - o - z, H - o - z))
         sh.ops.append(("rect", o, o, W - o, H - o, 2.6, "ink"))
         sh.ops.append(("rect", o + z, o + z, W - o - z, H - o - z, 0.8, "ink"))
         zs = 12 * max(u, 0.75)
@@ -826,6 +825,7 @@ def frame(sh: Sheet, background: str, m: Metrics, show_grid: bool) -> Box:
     else:
         inner = 20 * u
         sh.ops.append(("rect", inner, inner, W - inner, H - inner, 0.6, "rule"))
+    sh.ops.append(("grid", show_grid, inner, inner, W - inner, H - inner))
     b = inner + m.pad
     return (b, b, W - b, H - b)
 
@@ -895,7 +895,7 @@ def compose(job: PrintJob, art_fn: Callable[[tuple[int, int]], Art], size: tuple
     W, H = size
     m = Metrics(W, H)
     sh = Sheet(m)
-    border = frame(sh, opts.background, m, opts.show_grid)
+    border = frame(sh, opts.background, m, opts.grid_enabled)
     bx0, by0, bx1, by1 = border
     bw = bx1 - bx0
 

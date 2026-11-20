@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Control the grid on every paper and cell look, with existing paper defaults preserved.
 - Honour explicit cell colours and local fonts; Use dashboard keeps the widget's Paper.
 - Give AI sheets 15 extra seconds before using line art on screens.
 - Show each tool rack nozzle's filament name and swatch, with hatching on mono panels.

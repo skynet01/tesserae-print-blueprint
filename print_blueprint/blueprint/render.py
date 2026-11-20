@@ -41,9 +41,9 @@ def _render_sheet(job: PrintJob, art_fn: Callable[[tuple[int, int]], Art], size:
 
     for op in plan.ops:
         if op[0] == "grid" and op[1]:
-            _grid(pen, th, m, op[2:], two or bool(opts.palette))
+            _grid(pen, th, m, op[2:], two or bool(opts.palette) or opts.background != "blue")
     if plan.hero is not None:
-        _hero(pen, th, m, plan.hero, opts.background == "blue" and opts.show_grid, two)
+        _hero(pen, th, m, plan.hero, opts.grid_enabled, two)
     for op in plan.ops:
         _draw(pen, th, m, op, job)
 

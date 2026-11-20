@@ -154,3 +154,15 @@ def test_choices_image_uses_canvas_cell_size(server, monkeypatch, tmp_path, size
         assert max(image.size) <= 800
         assert len(image.getcolors(100000)) <= 4
         assert response.data == client.get(row["image"]).data
+
+
+@pytest.mark.parametrize('paper', ['blue','white','black'])
+@pytest.mark.parametrize('panel', ['colour','grey16','grey4','spectra','bw'])
+def test_grid_on_off_changes_pixels_on_every_paper_and_panel(paper, panel):
+    from blueprint.example import render_example
+    from blueprint.model import SheetOptions
+    on, rep_on = render_example((480,640), SheetOptions(background=paper,panel=panel,show_grid=True))
+    off, rep_off = render_example((480,640), SheetOptions(background=paper,panel=panel,show_grid=False))
+    assert not np.array_equal(np.asarray(on),np.asarray(off))
+    assert rep_on.border == rep_off.border
+    assert rep_on.texts == rep_off.texts  # border coordinates and title block survive

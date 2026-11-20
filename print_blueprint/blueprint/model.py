@@ -98,10 +98,14 @@ class SheetOptions:
     show_icons: bool = True
     callout_notes: bool = True
     fill_space: bool = True
-    show_grid: bool = True
+    show_grid: bool | None = None  # None: preserve the paper's default; bool: explicit on/off
     show_subtitle: bool = True
     show_progress: bool = True  # False: finished part, no current-layer marker or nozzle-layer callout
     clock: str = "h23"  # h12 (2:47 PM) | h23 (14:47): the device locale's clock style
     tz: str = ""  # IANA zone the times are shown in (Tesserae's setting); "" = the process's own
     palette: tuple[str, ...] = ()  # explicit cell look: background, text, rules, accent
     font_path: str = ""  # a locally registered core font; never a browser-supplied path
+
+    @property
+    def grid_enabled(self) -> bool:
+        return self.show_grid if self.show_grid is not None else self.background == "blue" or bool(self.palette)

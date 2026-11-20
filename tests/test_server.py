@@ -826,3 +826,21 @@ def test_only_real_pending_ai_renders_offer_the_extra_wait(server, monkeypatch, 
         ({"method": "preview"}, {"kie_api_key": "k"}, {}),
     ):
         assert "ai_wait" not in server.fetch(opts, settings, ctx=ctx(tmp_path, **extra))
+
+
+@pytest.mark.parametrize('paper', ['blue','white','black'])
+def test_grid_choices_preserve_legacy_defaults(server, paper):
+    for raw in (None, True, 'true', 'auto'):
+        opts=server.sheet_options({'background':paper,'show_grid':raw}, 'colour')
+        assert opts.grid_enabled == (paper=='blue')
+    assert server.sheet_options({'background':paper,'show_grid':'on'}, 'colour').grid_enabled
+    for raw in (False, 'false', 'off'):
+        assert not server.sheet_options({'background':paper,'show_grid':raw}, 'colour').grid_enabled
+
+
+@pytest.mark.parametrize('paper', ['blue','white','black'])
+def test_grid_on_survives_method_thumbnail_url(server, paper):
+    from urllib.parse import urlsplit, parse_qs
+    url=server._example_url('preview', {'background':paper,'show_grid':'on'})
+    query={key:val[0] for key,val in parse_qs(urlsplit(url).query).items()}
+    assert server.sheet_options(query,'colour').grid_enabled
