@@ -401,3 +401,16 @@ def test_a_printer_with_sliced_files_stays_open():
     serial = p1s["sensor.p1s_printer_serial_number"]["state"]
     assert not no_sliced_files("p1s_printer", p1s, lambda path: (FIX / "print_history.json").read_bytes())
     assert not no_sliced_files("p1s_printer", p1s, lambda path: _history(serial))
+
+
+def test_tool_filament_and_colour_come_from_each_nozzle(tmp_path):
+    s = states('h3c_states.json')
+    s['sensor.h3c_printer_hotendrack_printtool_2']['attributes'].update(
+        filament_name='Bambu PLA Basic', filament_type='PLA', color='#FFFFFFFF')
+    s['sensor.h3c_printer_hotendrack_printtool_3']['attributes'].update(
+        filament_name=None, filament_type='PETG', color='#123456FF')
+    job = build_job('h3c_printer', s, Http({'files': []}), tmp_path)
+    assert job.tools[1].filament == 'Bambu PLA Basic'
+    assert job.tools[1].color == '#FFFFFF'
+    assert job.tools[2].filament == 'PETG'
+    assert job.tools[2].color == '#123456'

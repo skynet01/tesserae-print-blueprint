@@ -19,6 +19,7 @@ class Tool:
     filament: str
     temp_c: float | None
     hours: float | None
+    color: str = ""
 
 
 @dataclass

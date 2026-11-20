@@ -149,16 +149,20 @@ def _humidity(h: _Ent) -> str | None:
 
 
 def _tools(h: _Ent) -> list[Tool]:
-    active = (h.attrs("active_tray") or {}).get("name") or ""
+    active = h.attrs("active_tray")
     tools = []
     for m, e in h.match(r"hotendrack_printtool_(\d+)"):
         n = int(m.group(1))
         a = e.get("attributes") or {}
         fil = str(a.get("filament_name") or "")
+        color = str(a.get("color") or "")[:7]
         if fil.lower() in _BAD:
-            fil = active if e.get("state") == "mounted" else ""
+            fil = str(a.get("filament_type") or "")
+        if fil.lower() in _BAD:
+            fil = str(active.get("name") or "") if e.get("state") == "mounted" else ""
+            color = str(active.get("color") or "")[:7] if fil else ""
         tools.append(Tool(n, str(e.get("state")), fil, h.temp(f"hotendrack_printtool_{n}_temperature"),
-                          h.num(f"hotendrack_printtool_{n}_print_time")))
+                          h.num(f"hotendrack_printtool_{n}_print_time"), color))
     return sorted(tools, key=lambda t: t.id)
 
 

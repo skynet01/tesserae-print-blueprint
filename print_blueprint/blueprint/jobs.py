@@ -38,6 +38,7 @@ AI_RETRY_S = 6 * 3600
 FAIL_RETRY_S = 300
 TIME_STEP_S = 600  # without the progress option a live sheet is redrawn this often (times, ETA)
 FAMILY_LEN = 24
+DRAWING_REV = 2  # invalidate sheets drawn before filament names and swatches in the tool rack
 
 # render_fn(job, size, opts, ai_png, note) -> sheet; note is the footnote to draw into it
 RenderFn = Callable[[PrintJob, tuple, SheetOptions, "bytes | None", str], Image.Image]
@@ -57,7 +58,7 @@ def _sha(blob) -> str:
 
 def family_of(job_key: str, size: tuple[int, int], opts: SheetOptions) -> str:
     """The part of a cache key shared by every sheet of one print at one size and option set."""
-    return _sha([job_key, list(size), dataclasses.asdict(opts)])[:FAMILY_LEN]
+    return _sha([DRAWING_REV, job_key, list(size), dataclasses.asdict(opts)])[:FAMILY_LEN]
 
 
 def cache_key(job: PrintJob, size: tuple[int, int], opts: SheetOptions, now: float | None = None,

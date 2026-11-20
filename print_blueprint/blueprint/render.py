@@ -4,14 +4,14 @@ from __future__ import annotations
 from typing import Callable
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageColor, ImageDraw, ImageFilter
 
 from .art import Art
 from .icons import draw_icon
 from .layout import SS, Metrics, compose
 from .model import PrintJob, SheetOptions
 from .report import LayoutReport
-from .theme import SPECTRA_THEMES, THEMES, Pen, quantise
+from .theme import SPECTRA, SPECTRA_THEMES, THEMES, Pen, quantise
 
 TWO_TONE = ("spectra", "bw", "grey4")  # thresholded art, >= 1 panel pixel lines, few colours
 
@@ -50,7 +50,36 @@ def render_sheet(job: PrintJob, art_fn: Callable[[tuple[int, int]], Art], size: 
         img = _snap(img, th).convert("L").point(lambda v: min(255, int(round(v / 85)) * 85)).convert("RGB")
     elif opts.panel == "bw":
         img = _snap(img, th).convert("L").point(lambda v: 255 if v >= 128 else 0).convert("RGB")
+    # Chips use native panel colours after quantisation; the sheet's text keeps its own inks.
+    for op in plan.ops:
+        if op[0] == "swatch":
+            _swatch(img, th, m, op, opts.panel)
     return img, plan.report
+
+
+def _swatch(img: Image.Image, th: dict, m: Metrics, op, panel: str) -> None:
+    _, x0, y0, x1, y1, color = op
+    x0, y0, x1, y1 = (round(v) for v in (x0, y0, x1, y1))
+    ink, bg = th["ink"], th["bg"]
+    mono = panel in ("grey16", "grey4", "bw")
+    if mono:
+        def grey(c):
+            v = Image.new("RGB", (1, 1), c).convert("L").getpixel((0, 0))
+            return (v // 17 * 17 if panel == "grey16" else
+                    min(255, round(v / 85) * 85) if panel == "grey4" else 255 if v >= 128 else 0, ) * 3
+        ink, bg = grey(ink), grey(bg)
+    try:
+        fill = ImageColor.getrgb(color) if not mono else None
+    except ValueError:
+        fill = None
+    if fill is not None and panel == "spectra":
+        fill = min((c[0] for c in SPECTRA.values()), key=lambda c: sum((a - b) ** 2 for a, b in zip(c, fill)))
+    d = ImageDraw.Draw(img)
+    d.rectangle((x0, y0, x1, y1), fill=fill or bg, outline=ink, width=max(1, round(m.lw)))
+    if fill is None:
+        # A visible hatch identifies a loaded spool even when its colour is white or unknown.
+        for x in range(x0 + 3, x1 - 1, max(3, round(4 * m.u))):
+            d.line((x, y1 - 2, min(x1 - 2, x + 3), y0 + 2), fill=ink, width=1)
 
 
 def _grid(pen: Pen, th, m: Metrics, rect, two: bool) -> None:

@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Give AI sheets 15 extra seconds before using line art on screens.
+- Show each tool rack nozzle's filament name and swatch, with hatching on mono panels.
 
 ## 0.1.2
 

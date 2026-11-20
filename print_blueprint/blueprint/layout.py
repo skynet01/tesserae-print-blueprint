@@ -187,7 +187,7 @@ class Group:
                 g.ops.append((k, (op[1][0] + dx, op[1][1] + dy), *op[2:]))
             elif k == "line":
                 g.ops.append((k, [(x + dx, y + dy) for x, y in op[1]], *op[2:]))
-            elif k == "rect":
+            elif k in ("rect", "swatch"):
                 g.ops.append((k, op[1] + dx, op[2] + dy, op[3] + dx, op[4] + dy, *op[5:]))
             elif k == "dots":
                 g.ops.append((k, op[1] + dx, op[2] + dx, op[3] + dy, op[4]))
@@ -712,15 +712,33 @@ def rack_group(job: PrintJob, m: Metrics, w: float) -> Group | None:
     if not job.tools:
         return None
     g = Group(m, "rack")
-    rows = []
-    for t in job.tools:
+    fs = m.rack
+    y = dotted_rows(g, 0, 0, w, [], fs, head="TOOL RACK")
+    labels = [f"T{t.id}" + (" · ACTIVE" if t.state == "mounted" else "") for t in job.tools]
+    chip_x = max(tlen(label, fs) for label in labels) + 4 * m.tm
+    chip = fs * 0.7
+    name_x = chip_x + chip + 3 * m.tm
+    for t, label in zip(job.tools, labels):
         hrs = f"{t.hours:.1f} H" if t.hours and t.hours > 0 else ""
         if t.state == "mounted":
             parts = [t.filament.upper() if t.filament else "", f"{t.temp_c:.0f} °C" if t.temp_c is not None and t.temp_c > 0 else "", hrs]
-            rows.append((f"T{t.id} · ACTIVE", " · ".join(p for p in parts if p) or "MOUNTED"))
+            value = " · ".join(p for p in parts if p) or "MOUNTED"
+            detail = " · ".join(p for p in parts[1:] if p)
         else:
-            rows.append((f"T{t.id}", " · ".join(p for p in (t.state.upper(), hrs) if p)))
-    dotted_rows(g, 0, 0, w, rows, m.rack, head="TOOL RACK")
+            value = detail = " · ".join(p for p in (t.state.upper(), hrs) if p)
+        room = w - name_x - tlen(detail, fs) - 4 * m.tm
+        name = _fit_text(clean(t.filament.upper()), fs, room) if t.filament else None
+        if not name:
+            y = dotted_rows(g, 0, y, w, [(label, value)], fs)
+            continue
+        g.text((0, y), label, fs)
+        g.text((name_x, y), name, fs)
+        if detail:
+            g.text((w, y), detail, fs, anchor="ra")
+        box = (chip_x, y + fs * 0.25, chip_x + chip, y + fs * 0.95)
+        g.ops.append(("swatch", *box, t.color))
+        g.extra.append(box)
+        y += pitch(fs, 1.4, m)
     return g
 
 

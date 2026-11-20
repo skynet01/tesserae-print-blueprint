@@ -515,3 +515,39 @@ def test_unknown_support_draws_no_support_callout():
     assert any(c.key == "support" for c in callouts(job, SheetOptions(), False))
     job = dataclasses.replace(job, slice=dataclasses.replace(job.slice, support=None))
     assert not any(c.key == "support" for c in callouts(job, SheetOptions(), False))
+
+
+@pytest.mark.parametrize('panel', ['colour', 'grey16', 'grey4', 'spectra', 'bw'])
+def test_tool_rack_has_filament_swatches_without_text_collisions(panel):
+    from blueprint.layout import Metrics, rack_group
+    from blueprint.model import Tool
+    from blueprint.report import boxes_touch
+    from blueprint.render import _swatch
+
+    job = dataclasses.replace(corpus.h3c_job(), tools=[
+        Tool(1, 'mounted', 'Bambu PLA Basic', 220, 2.6, '#FF0000'),
+        Tool(2, 'docked', 'Siraya Tech TPU-GF', 32, 4.0, '#FFFFFF'),
+        Tool(3, 'docked', '', 32, 1.0),
+    ])
+    group = rack_group(job, Metrics(1200, 1600), 475)
+    text = [s for s, _ in group.texts]
+    assert 'BAMBU PLA BASIC' in text and 'SIRAYA TECH TPU-GF' in text
+    assert 'T1 · ACTIVE' in text and 'DOCKED · 1.0 H' in text
+    swatches = [op for op in group.ops if op[0] == 'swatch']
+    assert len(swatches) == 2
+    for i, (_, a) in enumerate(group.texts):
+        assert not any(boxes_touch(a, b) for _, b in group.texts[i+1:])
+    # Drawn after panel quantisation: mono chips must remain mono, including a white filament.
+    bg = (255, 255, 255)
+    image = Image.new('RGB', (500, 100), bg)
+    _swatch(image, {'bg': bg, 'ink': (0, 0, 0)}, Metrics(1200, 1600), swatches[1], panel)
+    pixels = {tuple(c) for c in np.asarray(image).reshape(-1, 3)}
+    assert (0, 0, 0) in pixels
+    if panel in ('grey16', 'grey4', 'bw'):
+        assert pixels <= {bg, (0, 0, 0)}
+    else:
+        _swatch(image, {'bg': bg, 'ink': (0, 0, 0)}, Metrics(1200, 1600), swatches[0], panel)
+        assert (255, 0, 0) in {tuple(c) for c in np.asarray(image).reshape(-1, 3)}
+    moved = group.moved(10, 20)
+    moved_swatch = next(op for op in moved.ops if op[0] == 'swatch')
+    assert moved_swatch[1:5] == tuple(v + d for v, d in zip(swatches[0][1:5], (10, 20, 10, 20)))

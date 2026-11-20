@@ -63,6 +63,8 @@ The sheet is drawn for the panel it ends up on. With **Panel** on Auto (the defa
 
 On wide sheets the empty side space can hold sensor panels (temperatures, AMS slots, fans, machine hours) when the printer reports them and the part still has room. **Sensor panels** turns that off.
 
+Tool racks show each nozzle's known filament name and a colour swatch beside its status and hours. The mounted nozzle stays marked ACTIVE. Grey and black-and-white panels use an outlined, hatched swatch; Spectra uses its nearest native ink. Nozzles with no known filament keep their status and hours.
+
 ## Other options
 
 - **Show progress**: off draws the finished part without the layer marker. The times block stays and is redrawn every 10 minutes while printing.
