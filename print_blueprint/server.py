@@ -1127,13 +1127,11 @@ def _int_arg(value: Any, default: int, lo: int, hi: int) -> int:
 
 def blueprint():
     """`/plugins/print_blueprint/image/<name>.png` (sheets) and `/compare` (the three methods)."""
-    from flask import Blueprint, Response, abort, redirect, request, send_file, url_for
+    from flask import Blueprint, Response, abort, request, send_file
 
+    # No "/" index on purpose: Tesserae lists any widget with one under
+    # Widgets > Admin pages, and the compare page is a tool, not settings.
     bp = Blueprint("print_blueprint_admin", __name__)
-
-    @bp.get("/")
-    def index():
-        return redirect(url_for("print_blueprint_admin.compare"))
 
     @bp.get("/image/<name>")
     def image(name: str):

@@ -78,6 +78,14 @@ def test_manifest_valid(app: Flask) -> None:
     assert "print_blueprint_admin.image" in app.config["RENDER_SAFE_ENDPOINTS"]
 
 
+def test_not_listed_as_an_admin_page(app: Flask, client: FlaskClient) -> None:
+    """The compare page is a tool, not settings: no /plugins/<id>/ index, so the
+    Widgets menu doesn't list it as an admin page. /compare still answers."""
+    assert PLUGIN not in app.config["PLUGIN_ADMIN_IDS"]
+    assert client.get(f"/plugins/{PLUGIN}/").status_code == 404
+    assert client.get(f"/plugins/{PLUGIN}/compare").status_code != 404
+
+
 @pytest.mark.parametrize("size", ["sm", "md", "lg"])
 def test_renders_without_home_assistant(client: FlaskClient, size: str) -> None:
     resp = client.get(f"/_test/render?plugin={PLUGIN}&size={size}")
@@ -121,11 +129,6 @@ def test_compare_page(client: FlaskClient, printer: list[str]) -> None:
     page = resp.get_data(as_text=True)
     assert page.count("<img") == 1  # line art only: no sliced file, no AI picture yet
     assert "AI picture not made yet" in page and "No sliced file" in page
-
-
-def test_widget_page_redirects_to_compare(client: FlaskClient) -> None:
-    resp = client.get(f"/plugins/{PLUGIN}/")
-    assert resp.status_code in (301, 302) and resp.headers["Location"].endswith("/compare")
 
 
 def test_ships_its_files() -> None:

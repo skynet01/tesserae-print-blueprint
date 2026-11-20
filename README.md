@@ -106,7 +106,7 @@ bundled T800 example described above.
 Run the standalone tests:
 
 ```sh
-uv run --python 3.12 --with pytest --with numpy --with pillow pytest tests -q
+uv run --python 3.12 --with pytest --with numpy --with pillow --with flask pytest tests -q
 ```
 
 The Tesserae smoke tests run inside a Tesserae checkout. Copy (not symlink) `print_blueprint/` to the checkout's `plugins/`, then:

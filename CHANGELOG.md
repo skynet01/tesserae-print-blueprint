@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## 0.1.2
+
+- The compare page no longer shows up under Widgets › Admin pages; it's still linked from the Picture option.
+
 ## 0.1.1
 
 - Toolpaths no longer lose parts of a print (a gun barrel, the top of a skull) to a tight bounding-box clip.
