@@ -61,7 +61,7 @@
       "type": "boolean",
       "label": "Show progress",
       "default": true,
-      "help": "Printed layers solid, the rest dashed, with the nozzle's layer marked. Off draws the finished part."
+      "help": "Preview line art shades the printed fraction from the bottom up. Toolpaths dash the unprinted layers. Off shows the plain drawing without a layer marker."
     },
     {
       "name": "button_cycles_background",

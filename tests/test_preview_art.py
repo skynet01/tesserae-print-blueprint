@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from blueprint.art import preview_art
 
@@ -42,6 +42,22 @@ def test_missing_cover_is_empty():
     assert not art.ink.any() and not art.solid.any()
 
 
+def test_open_bore_stays_clear_of_ink_and_grid_mask():
+    cover = Image.new("RGBA", (96, 96))
+    draw = ImageDraw.Draw(cover)
+    draw.ellipse((8, 8, 87, 87), fill=(96, 96, 96, 255))
+    draw.ellipse((33, 33, 62, 62), fill=(0, 0, 0, 0))
+    buf = io.BytesIO()
+    cover.save(buf, "PNG")
+    art = preview_art(buf.getvalue(), (300, 300))
+    y, x = (n // 2 for n in art.ink.shape)
+    assert not art.solid[y-10:y+10, x-10:x+10].any()
+    assert not art.ink[y-10:y+10, x-10:x+10].any()
+    for ray in (art.ink[y, :x], art.ink[y, x:], art.ink[:y, x], art.ink[y:, x]):
+        visible = ray > 80  # both walls of the ring survive a one-bit panel
+        assert np.count_nonzero(visible[1:] & ~visible[:-1]) >= 2
+
+
 def test_preview_is_deterministic():
     png = COVER.read_bytes()
     a, b = preview_art(png, (800, 480)), preview_art(png, (800, 480))
@@ -49,11 +65,18 @@ def test_preview_is_deterministic():
     np.testing.assert_array_equal(a.solid, b.solid)
 
 
-@pytest.mark.parametrize("box, block_size", [((240, 320), 2), ((800, 480), 2), ((1600, 1200), 3)])
-def test_preview_leaves_paper_between_lines(box, block_size):
-    art = preview_art(COVER.read_bytes(), box)
-    ink = art.ink > 80  # the renderer's one-bit threshold
-    assert ink.sum() / (art.solid > 0).sum() < 0.38
-    # Allow a wider pen on large sheets, but reject merged fingers and joints.
-    blocks = np.lib.stride_tricks.sliding_window_view(ink, (block_size, block_size)).all(axis=(-1, -2))
-    assert blocks.sum() / max(1, ink.sum()) < 0.12
+def test_mezzotint_keeps_shadow_dots_and_face_boundary():
+    im = Image.new("RGBA", (120, 80), (210, 210, 210, 255))
+    draw = ImageDraw.Draw(im)
+    draw.rectangle((0, 0, 59, 79), fill=(50, 50, 50, 255))
+    # Transparent margin distinguishes the cover from an opaque background.
+    canvas = Image.new("RGBA", (130, 90))
+    canvas.paste(im, (5, 5))
+    buf = io.BytesIO()
+    canvas.save(buf, "PNG")
+    art = preview_art(buf.getvalue(), (120, 80))
+    shadow = art.ink[10:-10, 10:50] > 80
+    # At maximum darkness each 4x4 screen cell retains four paper pixels.
+    assert shadow.mean() == .75
+    assert not art.ink[10:-10, 70:110].any()
+    assert (art.ink[10:-10, 58:62] > 80).any(axis=1).all()

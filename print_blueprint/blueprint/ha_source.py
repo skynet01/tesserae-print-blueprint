@@ -347,7 +347,7 @@ def build_job(prefix: str, states: dict[str, dict], http_get: HistoryGet, cache_
     return PrintJob(
         prefix=prefix, model=_model(h, hist_model), printer_name=h.text("printer_name") or "", serial=serial,
         title=task or _stem(gname), status=status, progress=progress,
-        layer=int(layer) or None if layer is not None else None,
+        layer=int(layer) if layer is not None else None,
         layers=int(layers) or None if layers is not None else None,
         start_ts=_ts(start), end_ts=_ts(h.text("end_time")),
         nozzle_d=_rounded(to_mm(nd, h.unit("nozzle_size")), 3) if nd else None, nozzle_type=h.text("nozzle_type"),

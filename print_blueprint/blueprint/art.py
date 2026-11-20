@@ -226,63 +226,72 @@ def _pa_peaks(mag: np.ndarray, gx: np.ndarray, gy: np.ndarray) -> np.ndarray:
     return (mag > sides[0]) & (mag >= sides[1])
 
 
+def _preview_cover(png, box):
+    w, h = map(int, box)
+    if not png or min(w, h) < 8:
+        return None
+    with Image.open(io.BytesIO(png)) as src:
+        im = src.convert('RGBA')
+    alpha = im.getchannel('A')
+    if alpha.getextrema() == (255, 255):
+        rgb = np.asarray(im.convert('RGB')).astype(np.int16)
+        bg = np.median(rgb[[0, 0, -1, -1], [0, -1, 0, -1]], axis=0).astype(np.int16)
+        alpha = Image.fromarray((np.abs(rgb - bg).sum(2) > 36).astype('uint8') * 255)
+        im.putalpha(alpha)
+    bb = alpha.point([0] * 11 + [255] * 245).getbbox()
+    if not bb:
+        return None
+    im = im.crop(bb)
+    scale = min(w / im.width, h / im.height)
+    out = max(1, int(im.width * scale)), max(1, int(im.height * scale))
+    # Bound tracing cost even on a 4K sheet. Keep final enlargement separate.
+    scale = min(1., 850 / max(out))
+    im = im.resize((max(1, round(out[0] * scale)), max(1, round(out[1] * scale))), Image.Resampling.LANCZOS)
+    mask = np.pad(np.asarray(im.getchannel('A')) > 128, 1)
+    if not mask.any():
+        return None
+    g = np.pad(np.asarray(im.convert('L'), dtype=np.float32), 1)
+    lo, hi = np.percentile(g[mask], [3, 97])
+    span = max(24., hi - lo)
+    # A flat filament swatch has no modelled shadows: leave it paper.
+    tone = np.clip(1 + (g - hi) / span, 0, 1).astype(np.float32)
+    tone[~mask] = 1.
+    inner = np.asarray(Image.fromarray(mask.astype('uint8')).filter(ImageFilter.MinFilter(3))) != 0
+    return tone, mask, inner, out
+
+
+def _preview_planes(lines, mask, out):
+    def plane(bits):
+        im = Image.fromarray(bits[1:-1, 1:-1].astype('uint8') * 255)
+        if im.size != out:
+            im = im.resize(out, Image.Resampling.BILINEAR)
+        return np.array(im)
+    return Art(plane(lines & mask), plane(mask))
+
+
 def preview_art(png: bytes, box: tuple[int, int]) -> Art:
-    """Sharp shading contours, a thin silhouette and separated short shadow strokes."""
-    box_w, box_h = int(box[0]), int(box[1])
-    if not png or min(box_w, box_h) < 8:
+    """Stipple the cover's tone while giving its rim and interior creases a clear pen line."""
+    data = _preview_cover(png, box)
+    if data is None:
         return _empty()
-    im = Image.open(io.BytesIO(png)).convert("RGBA")
-    arr = np.asarray(im)
-    alpha = arr[:, :, 3]
-    if alpha.min() == 255:  # opaque cover: pixels near the corner colour are background
-        rgb = arr[:, :, :3].astype(np.int32)
-        corners = np.array([rgb[0, 0], rgb[0, -1], rgb[-1, 0], rgb[-1, -1]])
-        bgc = np.median(corners, axis=0)
-        far = np.abs(rgb - bgc).sum(-1) > 36
-        alpha = np.where(far, 255, 0).astype(np.uint8)
-        im = Image.fromarray(np.dstack([arr[:, :, :3], alpha]), "RGBA")
-    ys, xs = np.where(alpha > 10)
-    if not len(ys):
-        return _empty()
-    x0, x1 = max(xs.min() - 4, 0), min(xs.max() + 5, im.width)
-    y0, y1 = max(ys.min() - 4, 0), min(ys.max() + 5, im.height)
-    im = im.crop((x0, y0, x1, y1))
-    scale = min(box_w / im.width, box_h / im.height)
-    ow, oh = max(1, int(im.width * scale)), max(1, int(im.height * scale))
-    # One-pixel pen at small sizes; grow the pen and spacing together on large sheets.
-    pen_scale = max(1.0, min(box_w, box_h) / 900)
-    nw, nh = max(2, round(ow / pen_scale)), max(2, round(oh / pen_scale))
-    big = im.resize((nw, nh), Image.Resampling.LANCZOS)
-    mask = np.asarray(big)[:, :, 3] > 128
-    lum = np.asarray(big.convert("RGB").convert("L")).astype(np.float32)
-    inside = lum[mask]
-    if not inside.size:
-        return _empty()
-    lo, hi = np.percentile(inside, (3, 97))
-    t = np.clip((lum - lo) / max(12.0, hi - lo), 0, 1)
-    t = np.where(mask, t, 1).astype(np.float32)
-    unit = max(1.0, min(box_w, box_h) / pen_scale / 650)
-    fine = _pa_smooth(t, unit)
+    tone, mask, inner, out = data
+    fine = _pa_smooth(tone, 1.15)
     gy, gx = np.gradient(fine)
+    by, bx = np.gradient(_pa_smooth(tone, 2.2))
     mag = np.hypot(gx, gy)
-    m_img = Image.fromarray(mask.astype(np.uint8) * 255)
-    inner = np.asarray(m_img.filter(ImageFilter.MinFilter(3))) > 0
-    edges = _pa_peaks(mag, gx, gy) & (mag > 0.045 / unit) & inner
-    silhouette = mask & ~inner
-    yy, xx = np.mgrid[0:nh, 0:nw]
-    spacing = max(5, round(7 * unit))
-    shade = _pa_smooth(t, 1.8 * unit)
-    hatch = ((xx + yy) % spacing == 0) & (shade < 0.45)
-    hatch &= (xx - yy) % (spacing * 3) < spacing * 1.6
-    # A paper gap keeps tone marks from swelling the structural lines.
-    structure = edges | silhouette
-    busy = np.asarray(Image.fromarray(structure.astype(np.uint8) * 255).filter(ImageFilter.MaxFilter(3))) > 0
-    ink = (structure | (hatch & inner & ~busy)).astype(np.uint8) * 255
-    solid = mask.astype(np.uint8) * 255
-    if (nw, nh) != (ow, oh):
-        ink = np.asarray(Image.fromarray(ink).resize((ow, oh), Image.Resampling.NEAREST))
-        solid = np.asarray(Image.fromarray(solid).resize((ow, oh), Image.Resampling.NEAREST))
-    return Art(np.ascontiguousarray(ink), np.ascontiguousarray(solid))
+    creases = _pa_peaks(mag, gx, gy) & (mag > .028) & (gx * bx + gy * by > .001) & inner
+
+    def grow(bits):
+        return np.asarray(Image.fromarray(bits.astype(np.uint8)).filter(ImageFilter.MaxFilter(3))) > 0
+
+    # A regular offset dot screen, not panel dithering. Reserve a fine paper gap
+    # beside each crease so the shadows don't swallow narrow inside edges.
+    y, x = np.ogrid[:tone.shape[0], :tone.shape[1]]
+    dx = (x + 2 * ((y // 4) % 2)) % 4 - 1.5
+    dy = y % 4 - 1.5
+    dots = dx * dx + dy * dy < 3.3 * (1 - fine) ** 2
+    lines = grow(mask & ~inner) | creases | (dots & inner & ~grow(creases))
+    return _preview_planes(lines, mask, out)
 
 
 def _fill_holes(m: Image.Image) -> Image.Image:

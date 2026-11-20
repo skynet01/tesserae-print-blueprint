@@ -11,12 +11,13 @@ from zoneinfo import ZoneInfo
 import numpy as np
 
 from .art import ai_art, preview_art, toolpath_art
+from .preview_progress import apply_progress
 from .model import PrintJob, SheetOptions, SliceFacts
 from .render import render_sheet
 from .report import sheet_unit
 
 EXAMPLE_NOTE = "Example: T800"
-EXAMPLE_REV = 2
+EXAMPLE_REV = 3
 ASSETS = Path(__file__).resolve().parents[1] / "static" / "example"
 
 
@@ -64,7 +65,7 @@ def render_example(size: tuple[int, int], opts: SheetOptions):
                                 az=-55, u=sheet_unit(size), walls=walls)
         if opts.method == "ai":
             return ai_art(engraving, box)
-        return preview_art(cover, box)
+        return apply_progress(preview_art(cover, box), job, opts)
 
     # Use the same callouts for all three examples. The toolpath-only layer
     # callout otherwise pushes its hero aside; the times block still shows the layer.

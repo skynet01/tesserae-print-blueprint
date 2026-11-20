@@ -994,7 +994,7 @@ def compose(job: PrintJob, art_fn: Callable[[tuple[int, int]], Art], size: tuple
     art_src = art_fn
     art0 = _crop(art_fn(env)) if env[0] > 8 and env[1] > 8 else None
     if art0 is None and env[0] > 8 and env[1] > 8:
-        art_src = _fallback(job)
+        art_src = _fallback(job, opts)
         art0 = _crop(art_src(env)) if art_src else None
     toolpath = art_src is art_fn and opts.method == "toolpath" and job.slice is not None
     shapes = [shape(c, m) for c in callouts(job, opts, toolpath)]
@@ -1094,12 +1094,13 @@ def _memo(fn):
     return get
 
 
-def _fallback(job: PrintJob):
+def _fallback(job: PrintJob, opts: SheetOptions):
     from .art import preview_art
+    from .preview_progress import apply_progress
     png = job.cover_png or (job.slice.preview_png if job.slice else None)
     if not png:
         return None
-    return lambda box: preview_art(png, box)
+    return lambda box: apply_progress(preview_art(png, box), job, opts)
 
 
 def _search(art0: Art, region: Box, s_floor: float, shapes, m: Metrics, border: Box, size,

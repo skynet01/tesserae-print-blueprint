@@ -38,7 +38,7 @@ AI_RETRY_S = 6 * 3600
 FAIL_RETRY_S = 300
 TIME_STEP_S = 600  # without the progress option a live sheet is redrawn this often (times, ETA)
 FAMILY_LEN = 24
-DRAWING_REV = 4  # invalidate sheets with off-white paper and unsupported grey inks
+DRAWING_REV = 5  # preview art also appears on fallback sheets
 
 # render_fn(job, size, opts, ai_png, note) -> sheet; note is the footnote to draw into it
 RenderFn = Callable[[PrintJob, tuple, SheetOptions, "bytes | None", str], Image.Image]

@@ -70,6 +70,7 @@ def _register_package() -> None:
 
 _register_package()
 
+from .blueprint.preview_progress import apply_progress  # noqa: E402
 from .blueprint.art import Art, ai_art, preview_art, toolpath_art, walls_for  # noqa: E402
 from .blueprint.files import png_bytes, prune, write_atomic  # noqa: E402
 from .blueprint.example import EXAMPLE_NOTE, EXAMPLE_REV, render_example  # noqa: E402
@@ -547,7 +548,7 @@ def draw(job: PrintJob, size: tuple[int, int], opts: SheetOptions, ai_png: bytes
             return toolpath_art(job.slice, box, progress, az=-55, u=u, walls=walls[0])
         if src:
             try:
-                return preview_art(src, box)
+                return apply_progress(preview_art(src, box), job, opts)
             except Exception:
                 log.warning("print_blueprint: unreadable preview picture", exc_info=True)
         return _empty_art()

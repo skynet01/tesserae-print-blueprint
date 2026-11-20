@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Draw preview line art in mezzotint and shade the printed portion.
+
 ## 0.1.3
 
 - Keep white paper flat and use black ink for grey sheets on colour panels.
