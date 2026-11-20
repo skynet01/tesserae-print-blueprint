@@ -136,3 +136,36 @@ def test_ships_its_files() -> None:
     for name in ("client.js", "client.css", "strings/en.json", "fonts/osifont-lgpl3fe.ttf",
                  "static/methods/toolpath.jpg", "static/methods/preview.jpg", "static/methods/ai.jpg"):
         assert (here / name).is_file(), name
+
+
+def test_ready_route_only_collects_queued_work(app: Flask, client: FlaskClient, mod: ModuleType,
+                                              monkeypatch: pytest.MonkeyPatch) -> None:
+    from threading import Event
+
+    data_dir = app.config["PLUGIN_REGISTRY"].get(PLUGIN).data_dir
+    gate = Event()
+    states = {e['entity_id']: e for e in _states()}
+    job = mod.build_job(PREFIX, states,
+                        lambda p: b'{"files": []}' if 'print_history' in p else _cover(), data_dir,
+                        allow_download=False)
+    runner = mod._runner(data_dir)
+
+    def draw(*args):
+        gate.wait(2)
+        return Image.new("RGB", (64, 64), "white")
+
+    st = runner.ensure(job, (64, 64), mod.SheetOptions(method="preview"), draw)
+    monkeypatch.setattr(mod, "AI_WAIT_S", 0)
+    url = f"/plugins/{PLUGIN}/ready/{st.key}"
+    assert client.get(url).status_code == 204
+    gate.set()
+    assert runner.wait_idle()
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.headers['Cache-Control'] == 'no-store'
+    image = client.get(response.json['image'])
+    assert image.status_code == 200
+    image.close()
+    assert client.get(f"/plugins/{PLUGIN}/ready/{'0' * 40}").status_code == 204
+    assert client.get(f"/plugins/{PLUGIN}/ready/not-a-key").status_code == 404
+    assert "print_blueprint_admin.ready" in app.config["RENDER_SAFE_ENDPOINTS"]

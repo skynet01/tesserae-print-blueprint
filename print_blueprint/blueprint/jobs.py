@@ -103,6 +103,7 @@ class Runner:
         self.ai_dir = self.data_dir / "ai"
         self._kie, self._now = kie_factory, now
         self._lock = threading.Lock()
+        self._finished = threading.Condition(self._lock)
         self._q: queue.Queue = queue.Queue()
         self._inflight: set[str] = set()
         self._failed: dict[str, tuple[float, str]] = {}
@@ -163,6 +164,16 @@ class Runner:
             time.sleep(0.01)
         return False
 
+    def wait_for_sheet(self, key: str, timeout: float) -> Path | None:
+        """Collect queued work without starting anything; failed AI keeps its fallback."""
+        with self._finished:
+            if key not in self._notes:
+                return None
+            done = self._finished.wait_for(lambda: key not in self._inflight, timeout=timeout)
+            if not done or self._notes[key]:
+                return None
+        return self.newest(key)
+
     def last_finished(self, prefix: str) -> dict | None:
         """{job_key, title, ts, files: {cache_key: png name}} of the newest finished print, or None."""
         entry = self._read(self.sheets / "index.json").get(prefix)
@@ -202,6 +213,7 @@ class Runner:
                     self._failed[key] = (self._now(), note)
                 else:
                     self._failed.pop(key, None)
+                self._finished.notify_all()
 
     def _run(self, key, job: PrintJob, size, opts, render_fn, kie_key: str, cap: int, prepare_fn=None) -> str:
         if prepare_fn is not None:

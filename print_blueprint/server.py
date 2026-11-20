@@ -1,6 +1,6 @@
 """print_blueprint: what a Bambu Lab printer is printing, drawn as a blueprint sheet.
 
-The work is split so a render never waits on it:
+The slow work stays outside fetch():
 
 * ``fetch()`` reads Home Assistant through Tesserae's ha_core (states are cached
   there), builds the print job without downloading anything, and returns the
@@ -8,6 +8,8 @@ The work is split so a render never waits on it:
   it asks the background runner for the sheet this cell needs (only settled,
   non-preview renders may spend kie.ai credits). Until that lands it shows the newest sheet of the same print,
   size and options, else draws the cheap line-art sheet inline, and says ``live_pending``.
+* For a real screen whose AI picture is pending, the browser gives the queued sheet
+  15 extra seconds during composition before using line art. Previews never wait.
 * ``blueprint.jobs.Runner`` downloads the sliced 3MF, renders the toolpaths and
   (optionally) the kie.ai engraving on one daemon thread.
 * ``/plugins/print_blueprint/image/<name>.png`` serves the sheets (render safe,
@@ -83,12 +85,14 @@ from .blueprint.theme import SPECTRA_THEMES, THEMES, glass  # noqa: E402
 log = logging.getLogger(__name__)
 
 PLUGIN_ID = "print_blueprint"
-RENDER_SAFE_ENDPOINTS: tuple[str, ...] = ("print_blueprint_admin.image", "print_blueprint_admin.example",)
+RENDER_SAFE_ENDPOINTS: tuple[str, ...] = ("print_blueprint_admin.image", "print_blueprint_admin.example",
+                                        "print_blueprint_admin.ready",)
 
 METHODS = ("toolpath", "preview", "ai")
 BACKGROUNDS = ("blue", "white", "black")
 PANELS = ("colour", "grey16", "grey4", "spectra", "bw")
 LIVE_REFRESH_S = 20  # how often editors and push follow-ups look again while a sheet is being drawn
+AI_WAIT_S = 15.0  # extra browser-compose time before line art; fetch() still has only six seconds
 FETCH_BUDGET_S = 6.0  # the host's budget for fetch(), counted from its first line
 HTTP_BUDGET_S = 2.0  # all Home Assistant GETs inside fetch() (print history, cover)
 STATES_BUDGET_S = 3.0  # the Home Assistant states read; a slower answer finishes in the background
@@ -885,6 +889,8 @@ def fetch(options: dict[str, Any], settings: dict[str, Any], *, ctx: dict[str, A
     if pending:
         out["live_refresh_s"] = LIVE_REFRESH_S
         out["live_pending"] = 1
+        if opts.method == "ai" and paid_key and st.key and not (runner.ai_dir / f"{job.job_key}.png").exists():
+            out["ai_wait"] = f"/plugins/{PLUGIN_ID}/ready/{st.key}"
     if note:
         out["note"] = note
     if "image" in out:
@@ -1141,6 +1147,19 @@ def blueprint():
         response = send_file(path, mimetype="image/png", conditional=True)
         # The URL carries a version of the file, so it never changes under a URL.
         response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+
+    @bp.get("/ready/<key>")
+    def ready(key: str):
+        # Read only: no HA calls, task submissions or re-queues on the render-safe route.
+        if not re.fullmatch(r"[0-9a-f]{40}", key):
+            abort(404)
+        runner = _RUNNERS.get(str(_data_dir()))
+        path = runner.wait_for_sheet(key, AI_WAIT_S) if runner is not None else None
+        url = _url(path) if path is not None else None
+        response = Response(json.dumps({"image": url}) if url else "", status=200 if url else 204,
+                            mimetype="application/json")
+        response.headers["Cache-Control"] = "no-store"
         return response
 
     @bp.get("/example/<method>.png")

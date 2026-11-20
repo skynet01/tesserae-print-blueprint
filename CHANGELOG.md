@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Give AI sheets 15 extra seconds before using line art on screens.
+
 ## 0.1.2
 
 - The compare page no longer shows up under Widgets › Admin pages; it's still linked from the Picture option.

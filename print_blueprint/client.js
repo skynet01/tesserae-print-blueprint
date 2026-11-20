@@ -13,9 +13,26 @@ function colour(value, fallback) {
   return HEX.test(String(value || "")) ? value : fallback;
 }
 
-export default function render(shadow, ctx) {
+export default async function render(shadow, ctx) {
   const t = ctx?.t || ((key, fallback) => fallback ?? key);
-  const data = ctx?.data ?? {};
+  let data = ctx?.data ?? {};
+  if (data.ai_wait && !ctx?.preview) {
+    // Awaited by Tesserae's compose signal (25 s), outside its six-second fetch budget.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15_000);
+    try {
+      const prefix = window.TESSERAE_URL_PREFIX || "";
+      const response = await fetch(prefix + data.ai_wait, {signal: controller.signal, cache: "no-store"});
+      if (response.ok && response.status === 200) {
+        const ready = await response.json();
+        if (ready.image) data = {...data, image: ready.image, note: ""};
+      }
+    } catch {
+      // Keep the quick sheet on a timeout or failed request.
+    } finally {
+      clearTimeout(timer);
+    }
+  }
   const size = ctx?.cell?.size || "md";
   const bg = colour(data.colors?.bg, "#1c4688");
   const ink = colour(data.colors?.ink, "#ecf2ff");

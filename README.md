@@ -34,11 +34,11 @@ The Picture thumbnails and their Enlarge view use the same example renderer. The
 | --- | --- | --- |
 | ![Toolpaths](screenshots/toolpath-door-blue-spectra.png) | ![Line art](screenshots/preview-door-blue-spectra.png) | ![AI engraving](screenshots/ai-door-blue-spectra.png) |
 
-**Toolpaths** (the default) draws the outer walls from the G-code in the sliced 3MF, in isometric view. Printed layers are solid, the layers still to come are dashed, and a marker shows the nozzle's layer. Home Assistant only has the 3MF when ha-bambulab cached it (its print history). Cloud prints on printers without storage have no 3MF; the sheet then falls back to line art and says so in a small note at its top right.
+**Toolpaths** (the default) draws the outer walls from the G-code in the sliced 3MF, in isometric view. Printed layers are solid, the layers still to come are dashed, and a marker shows the nozzle's layer. Home Assistant only has the 3MF when ha-bambulab cached it (its print history). Without a cached 3MF, the sheet falls back to line art and says so in a small note at its top right. Cloud prints can work when the integration caches their sliced file over the LAN. The `gcode_filename` sensor alone gives no download access: a path such as `/data/Metadata/plate_1.gcode` is inside the printer's RAM filesystem and is not exposed by FTPS. The widget has the HA connection, but no printer LAN address or access code. It needs ha-bambulab to cache the sliced file or expose an authenticated download endpoint for the current print.
 
 **Line art from the preview** traces the slicer's cover picture that ha-bambulab publishes, with sharp contours and short shadow strokes that leave fine details clear. It is quick, free and works for every print. The integration drops that picture when it reloads during a print, so the widget keeps its own copy of each print's cover and uses that instead.
 
-**AI engraving** sends the cover picture to kie.ai (`google/nano-banana-edit`) once per print and draws the answer as a pen-and-ink engraving. One picture costs about 4 kie.ai credits, roughly US$0.02, and took 15 to 20 seconds in our tests; line art shows until it arrives. The **AI pictures per day** setting caps submissions (12 by default). On cores with the shared artwork ledger, each submission also reserves two cents against the daily and monthly ceilings under Settings → Generative AI. The compare page never makes an AI picture; it shows one only if the widget already made it.
+**AI engraving** sends the cover picture to kie.ai (`google/nano-banana-edit`) once per print and draws the answer as a pen-and-ink engraving. One picture costs about 4 kie.ai credits, roughly US$0.02, and took 15 to 20 seconds in our tests. A real screen render gives a pending AI sheet 15 extra seconds before using line art. This wait runs during browser composition, within the core's 25-second compose allowance; the widget's six-second data-fetch budget stays unchanged. Previews never wait for AI. The **AI pictures per day** setting caps submissions (12 by default). On cores with the shared artwork ledger, each submission also reserves two cents against the daily and monthly ceilings under Settings → Generative AI. The compare page never makes an AI picture; it shows one only if the widget already made it.
 
 The widget saves a submission record before contacting kie.ai and keeps the task ID through timeouts, failed downloads and restarts. Later renders collect that task for free. Only a provider-reported failed task allows another automatic submission, after six hours. A missing or unreadable cover uses no allowance and starts no retry wait.
 
@@ -107,6 +107,12 @@ Run the standalone tests:
 
 ```sh
 uv run --python 3.12 --with pytest --with numpy --with pillow --with flask pytest tests -q
+```
+
+The browser wait tests use Node's built-in test runner:
+
+```sh
+node --test tests/test_client.mjs
 ```
 
 The Tesserae smoke tests run inside a Tesserae checkout. Copy (not symlink) `print_blueprint/` to the checkout's `plugins/`, then:

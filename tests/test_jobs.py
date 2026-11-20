@@ -344,3 +344,30 @@ def test_a_timed_out_paid_picture_is_collected_not_bought_again(tmp_path):
     assert r.wait_idle()
     assert kie.n == 1 and kie.collected == ["T1", "T1"] and render.calls[-1] == ("x", True)
     assert (tmp_path / "ai" / "x.png").exists()
+
+
+def test_wait_for_sheet_returns_the_finished_ai_sheet(tmp_path):
+    """The browser can collect the sheet queued before the AI picture arrived."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    kie, render = Kie(), Render()
+    render.gate = threading.Event()
+    r = Runner(tmp_path, kie_factory=kie)
+    st = r.ensure(job(), SIZE, AI, render, kie_key="K")
+    assert r.wait_for_sheet(st.key, timeout=0) is None
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        waiting = pool.submit(r.wait_for_sheet, st.key, timeout=2)
+        render.gate.set()
+        path = waiting.result(timeout=3)
+    assert path and path.is_file()
+    assert render.calls == [("k1", True)] and kie.n == 1
+    assert path == r.newest(st.key)  # the final key includes ai_present=True
+    assert r.wait_for_sheet("0" * 40, timeout=0) is None
+
+
+def test_wait_for_sheet_does_not_collect_a_failed_ai_fallback(tmp_path):
+    r = Runner(tmp_path, kie_factory=Kie(fail=True))
+    st = r.ensure(job(), SIZE, AI, Render(), kie_key="K")
+    assert r.wait_idle()
+    assert r.newest(st.key).is_file()
+    assert r.wait_for_sheet(st.key, timeout=0) is None

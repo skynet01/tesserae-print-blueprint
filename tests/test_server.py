@@ -810,3 +810,19 @@ def test_toolpath_sheet_lays_out_like_the_other_methods(server):
     finally:
         server.render_sheet = real
     assert seen == ["preview", "preview"]
+
+
+def test_only_real_pending_ai_renders_offer_the_extra_wait(server, monkeypatch, tmp_path):
+    wire(server, monkeypatch, p1s_states())
+    key = "a" * 40
+    monkeypatch.setattr(server.Runner, "ensure", lambda *a, **k: server.RenderState(None, True, key=key))
+    data = server.fetch({"method": "ai"}, {"kie_api_key": "k"}, ctx=ctx(tmp_path))
+    assert data["ai_wait"] == f"/plugins/print_blueprint/ready/{key}"
+    assert server.FETCH_BUDGET_S == 6.0
+    for opts, settings, extra in (
+        ({"method": "ai"}, {"kie_api_key": "k"}, {"preview": True}),
+        ({"method": "ai"}, {"kie_api_key": "k"}, {"settled": False}),
+        ({"method": "ai"}, {}, {}),
+        ({"method": "preview"}, {"kie_api_key": "k"}, {}),
+    ):
+        assert "ai_wait" not in server.fetch(opts, settings, ctx=ctx(tmp_path, **extra))
