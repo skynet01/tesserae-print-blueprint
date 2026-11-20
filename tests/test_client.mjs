@@ -61,3 +61,39 @@ test('unavailable AI or a timed-out request keeps the fallback and resolves comp
     }
   } finally { Object.assign(globalThis, old); }
 });
+
+test('explicit cell look is sent to the renderer; Use dashboard keeps Paper', async () => {
+  const old = {fetch: globalThis.fetch, window: globalThis.window, document: globalThis.document,
+               getComputedStyle: globalThis.getComputedStyle};
+  let explicit = true, calls = 0;
+  globalThis.window = {};
+  const tokens = {'--surface': '#141310', '--text-primary': '#f1eee4', '--text-secondary': '#b9b4a6',
+                  '--accent-4': '#69b7b0', '--font-family': 'Inter'};
+  globalThis.getComputedStyle = () => ({getPropertyValue: name => tokens[name] || ''});
+  globalThis.document = {createElement: () => ({getContext: () => ({
+    fillStyle: '', fillRect() {}, getImageData() {
+      const h = this.fillStyle.replace('#', '');
+      return {data: [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)).concat(255)};
+    },
+  })})};
+  const cell = {getAttribute: name => explicit && name === 'data-theme' ? 'dark' : null,
+                style: {getPropertyValue: () => ''}};
+  const shadow = {innerHTML: '', host: {closest: () => cell}};
+  globalThis.fetch = async url => {
+    calls++;
+    const query = new URL(url, 'http://local').searchParams;
+    assert.equal(JSON.parse(query.get('look')).bg, '#141310');
+    assert.equal(JSON.parse(query.get('look')).font, 'Inter');
+    assert.equal(query.get('preview'), '1');
+    return {ok: true, json: async () => ({image: '/styled.png', colors: {bg:'#141310', ink:'#f1eee4'}})};
+  };
+  try {
+    const ctx = {data: {image:'/paper.png', look_preview:true}, cell:{options:{background:'blue'}}};
+    await render(shadow, ctx);
+    assert.match(shadow.innerHTML, /styled\.png/);
+    explicit = false;
+    await render(shadow, ctx);
+    assert.match(shadow.innerHTML, /paper\.png/);
+    assert.equal(calls, 1);
+  } finally {Object.assign(globalThis, old);}
+});

@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import math
+from contextlib import contextmanager
+from contextvars import ContextVar
 from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageColor, ImageDraw, ImageFont
 
 FONT_PATH = str(Path(__file__).resolve().parent.parent / "fonts" / "osifont-lgpl3fe.ttf")
 
@@ -46,9 +48,68 @@ class Scale:
         return v * self.u
 
 
+_FONT = ContextVar("blueprint_font", default="")
+
+
+@contextmanager
+def font_context(path: str):
+    token = _FONT.set(path)
+    try:
+        yield
+    finally:
+        _FONT.reset(token)
+
+
 @lru_cache(maxsize=256)
-def _font(size: int) -> ImageFont.FreeTypeFont:
-    return ImageFont.truetype(FONT_PATH, max(1, size))
+def _load_font(path: str, size: int):
+    try:
+        return ImageFont.truetype(path or FONT_PATH, max(1, size))
+    except (OSError, ValueError):
+        return ImageFont.truetype(FONT_PATH, max(1, size))
+
+
+@lru_cache(maxsize=4096)
+def _has_glyph(path: str, ch: str) -> bool:
+    f = _load_font(path, 24)
+    return ch.isspace() or bytes(f.getmask(ch)) != bytes(f.getmask('\uffff'))
+
+
+def font_for(text: str, size: int):
+    path = _FONT.get()
+    return _load_font(path if not path or all(_has_glyph(path, ch) for ch in text) else FONT_PATH, size)
+
+
+def _contrast(a, b):
+    def lum(c):
+        v = [x / 255 / 12.92 if x / 255 <= .04045 else ((x / 255 + .055) / 1.055) ** 2.4 for x in c]
+        return sum(x * k for x, k in zip(v, (.2126, .7152, .0722)))
+    x, y = sorted((lum(a), lum(b)))
+    return (y + .05) / (x + .05)
+
+
+def theme_for(opts) -> dict:
+    two = opts.panel in ("spectra", "bw", "grey4")
+    if not opts.palette:
+        return dict((SPECTRA_THEMES if two else THEMES)[opts.background])
+    bg, ink, rule, accent = [ImageColor.getrgb(c) for c in opts.palette]
+    if opts.panel == "spectra":
+        def snap(c):
+            return min((v[0] for v in SPECTRA.values()), key=lambda p: sum((a - b) ** 2 for a, b in zip(p, c)))
+    elif opts.panel in ("grey16", "grey4", "bw"):
+        def snap(c):
+            v = Image.new("RGB", (1, 1), c).convert("L").getpixel((0, 0))
+            n = 17 if opts.panel == "grey16" else 85 if opts.panel == "grey4" else 255
+            return (min(255, round(v / n) * n),) * 3
+    else:
+        snap = tuple
+    bg, ink, rule, accent = [snap(c) for c in (bg, ink, rule, accent)]
+    if _contrast(bg, ink) < 4.5:
+        ink = max(((0, 0, 0), (255, 255, 255)), key=lambda c: _contrast(bg, c))
+    if _contrast(bg, rule) < 3 or two:
+        rule = ink
+    if _contrast(bg, accent) < 4.5:
+        accent = ink
+    return dict(bg=bg, ink=ink, rule=rule, accent=accent)
 
 
 class Pen:
@@ -98,11 +159,11 @@ class Pen:
         self.dr.ellipse([x0 * s, y0 * s, x1 * s, y1 * s], fill=fill, outline=col or self.th["ink"], width=self.w(k))
 
     def text(self, xy, s, size, col=None, anchor="la"):
-        self.dr.text((xy[0] * self.ss, xy[1] * self.ss), s, font=_font(int(size * self.ss)),
+        self.dr.text((xy[0] * self.ss, xy[1] * self.ss), s, font=font_for(s, int(size * self.ss)),
                      fill=col or self.th["ink"], anchor=anchor)
 
     def tlen(self, s, size) -> float:
-        return self.dr.textlength(s, font=_font(int(size * self.ss))) / self.ss
+        return self.dr.textlength(s, font=font_for(s, int(size * self.ss))) / self.ss
 
     def arrow(self, x, y, ang, size=9, col=None):
         a = math.radians(ang)

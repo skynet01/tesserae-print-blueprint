@@ -20,7 +20,7 @@ from .art import Art
 from .model import PrintJob, SheetOptions
 from .report import (MAX_DIAG_ON_PART, MIN_HERO, Box, LayoutReport, boxes_touch, hero_fill, inside, on_mask,
                      seg_box, seg_samples, seg_seg, sheet_unit)
-from .theme import _font
+from .theme import font_for
 from .titles import pretty_title
 
 SS = 2  # supersampling of the drawing canvas
@@ -70,18 +70,18 @@ def clean(s: str) -> str:
 
 
 def tlen(s: str, size: float) -> float:
-    return _font(int(size * SS)).getlength(s) / SS
+    return font_for(s, int(size * SS)).getlength(s) / SS
 
 
 def tbox(s: str, size: float, x: float, y: float, anchor: str = "la") -> Box:
     """Ink box of text drawn by Pen.text at (x, y)."""
-    l, t, r, b = _font(int(size * SS)).getbbox(s, anchor=anchor)
+    l, t, r, b = font_for(s, int(size * SS)).getbbox(s, anchor=anchor)
     return (x + l / SS, y + t / SS, x + r / SS, y + b / SS)
 
 
 def pitch(size: float, factor: float, m: "Metrics") -> float:
     """Line spacing: factor x size, but never so tight that padded text boxes touch."""
-    l, t, r, b = _font(int(size * SS)).getbbox("ÅÉgjØ,", anchor="la")
+    l, t, r, b = font_for("ÅÉgjØ,", int(size * SS)).getbbox("ÅÉgjØ,", anchor="la")
     return max(factor * size, (b - t) / SS + 2 * m.tm + max(0.5, 0.5 * m.u))
 
 

@@ -169,3 +169,77 @@ def test_ready_route_only_collects_queued_work(app: Flask, client: FlaskClient, 
     assert client.get(f"/plugins/{PLUGIN}/ready/{'0' * 40}").status_code == 204
     assert client.get(f"/plugins/{PLUGIN}/ready/not-a-key").status_code == 404
     assert "print_blueprint_admin.ready" in app.config["RENDER_SAFE_ENDPOINTS"]
+
+
+@pytest.mark.parametrize('theme', [None, 'dark', 'light'])
+def test_explicit_cell_look_and_method_thumbnail(app: Flask, client: FlaskClient, mod: ModuleType,
+                                                monkeypatch: pytest.MonkeyPatch, theme: str | None) -> None:
+    from types import SimpleNamespace
+    from flask import request
+
+    cell = SimpleNamespace(id='look-cell', plugin=PLUGIN, options={}, theme=theme, style=None,
+                           font='inter' if theme else None)
+    page = SimpleNamespace(cells=[cell], theme='dark', style='standard', font='inter')
+    monkeypatch.setitem(app.config, 'PAGE_STORE', SimpleNamespace(get=lambda _: page))
+    data_dir = app.config['PLUGIN_REGISTRY'].get(PLUGIN).data_dir
+    with app.test_request_context():
+        data = mod.fetch({'background':'black'}, {}, ctx={'data_dir':str(data_dir), 'preview':True,
+                         'placement_id':'test-page/look-cell', 'cell_w':320, 'cell_h':420})
+        if theme:
+            assert data['cell_look']['font'] == 'Inter'
+            path = mod.cell_look.font_path('Inter')
+            assert path.endswith('.woff2')
+            import sys
+            theme_module = sys.modules[mod.__package__ + '.blueprint.theme']
+            with theme_module.font_context(path):
+                assert theme_module.font_for('PLA', 20).getname()[0] == 'Inter'
+                assert theme_module.font_for('\uffff', 20).getname()[0] != 'Inter'
+            expected = '#232019' if theme == 'dark' else '#f7f5f0'
+            assert data['colors']['bg'] == expected
+        else:
+            assert data['cell_look'] is None
+            assert data['colors']['bg'] == '#060a12'
+        request.view_args = {'page_id':'test-page'}
+        thumb = mod._example_url('preview', {'background':'black'})
+        assert ('look=' in thumb) == bool(theme)
+    response = client.get(data['image'])
+    image = Image.open(io.BytesIO(response.data))
+    assert image.getpixel((0, 0)) == tuple(bytes.fromhex(data['colors']['bg'][1:]))
+    response.close()
+    thumb_response = client.get(thumb)
+    assert thumb_response.status_code == 200
+    thumb_response.close()
+
+
+def test_browser_look_route_is_free_and_validates_font_and_colours(app: Flask, client: FlaskClient,
+                                                                mod: ModuleType, monkeypatch: pytest.MonkeyPatch) -> None:
+    from urllib.parse import urlencode
+    look = {'bg':'#141310','ink':'#f1eee4','rule':'#b9b4a6','accent':'#69b7b0','font':'../../settings.json'}
+    with app.test_request_context():
+        assert mod.cell_look.font_path(look['font']) == ''
+    monkeypatch.setattr(mod, '_own_settings', lambda: {'kie_api_key':'K'})
+    monkeypatch.setattr(mod.KieClient, 'repaint', lambda *a, **k: pytest.fail('look route must never spend'))
+    url = '/plugins/print_blueprint/look?' + urlencode({'look':json.dumps(look),'preview':1,'w':320,'h':420})
+    data = client.get(url).json
+    assert data['cell_look']['bg'] == '#141310' and data['image']
+    assert client.get('/plugins/print_blueprint/look?look=%7B%22bg%22%3A%22bad%22%7D').status_code == 400
+
+
+def test_real_sheet_worker_keeps_the_cell_palette(app: Flask, client: FlaskClient, mod: ModuleType,
+                                                 printer: list[str], monkeypatch: pytest.MonkeyPatch) -> None:
+    from types import SimpleNamespace
+    cell = SimpleNamespace(id='cell', plugin=PLUGIN, options={}, theme='dark', style=None, font='inter')
+    page = SimpleNamespace(cells=[cell], theme='light', style='standard', font=None)
+    monkeypatch.setitem(app.config, 'PAGE_STORE', SimpleNamespace(get=lambda _: page))
+    data_dir = app.config['PLUGIN_REGISTRY'].get(PLUGIN).data_dir
+    ctx = {'data_dir':str(data_dir),'cell_w':320,'cell_h':420,'preview':False,
+           'settled':True,'placement_id':'page/cell'}
+    with app.test_request_context():
+        mod.fetch({'method':'preview'}, {}, ctx=ctx)
+    assert mod._runner(data_dir).wait_idle()
+    with app.test_request_context():
+        data = mod.fetch({'method':'preview'}, {}, ctx=ctx)
+    response = client.get(data['image'])
+    assert Image.open(io.BytesIO(response.data)).getpixel((0,0)) == (35,32,25)
+    assert 'live_pending' not in data
+    response.close()

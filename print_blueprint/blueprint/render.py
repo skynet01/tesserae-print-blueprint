@@ -11,13 +11,19 @@ from .icons import draw_icon
 from .layout import SS, Metrics, compose
 from .model import PrintJob, SheetOptions
 from .report import LayoutReport
-from .theme import SPECTRA, SPECTRA_THEMES, THEMES, Pen, quantise
+from .theme import SPECTRA, Pen, quantise, font_context, theme_for
 
 TWO_TONE = ("spectra", "bw", "grey4")  # thresholded art, >= 1 panel pixel lines, few colours
 
 
 def render_sheet(job: PrintJob, art_fn: Callable[[tuple[int, int]], Art], size: tuple[int, int],
                  opts: SheetOptions, note: str = "") -> tuple[Image.Image, LayoutReport]:
+    with font_context(opts.font_path):
+        return _render_sheet(job, art_fn, size, opts, note)
+
+
+def _render_sheet(job: PrintJob, art_fn: Callable[[tuple[int, int]], Art], size: tuple[int, int],
+                  opts: SheetOptions, note: str = "") -> tuple[Image.Image, LayoutReport]:
     """Render the sheet at `size`.
 
     `art_fn(box)` returns the hero Art fitted to box (w, h). It is called once with the largest
@@ -26,7 +32,7 @@ def render_sheet(job: PrintJob, art_fn: Callable[[tuple[int, int]], Art], size: 
     text-only sheet. `note` is a footnote drawn into the sheet (why the picture fell back)."""
     W, H = size
     two = opts.panel in TWO_TONE
-    th = dict((SPECTRA_THEMES if two else THEMES)[opts.background])
+    th = theme_for(opts)
     plan = compose(job, art_fn, size, opts, accent_eta=opts.background == "white", note=note)
     m = Metrics(W, H)
     pen = Pen.canvas(W, H, th, lw=m.lw, ss=SS)
@@ -35,7 +41,7 @@ def render_sheet(job: PrintJob, art_fn: Callable[[tuple[int, int]], Art], size: 
 
     for op in plan.ops:
         if op[0] == "grid" and op[1]:
-            _grid(pen, th, m, op[2:], two)
+            _grid(pen, th, m, op[2:], two or bool(opts.palette))
     if plan.hero is not None:
         _hero(pen, th, m, plan.hero, opts.background == "blue" and opts.show_grid, two)
     for op in plan.ops:

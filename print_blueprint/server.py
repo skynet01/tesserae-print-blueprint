@@ -80,13 +80,14 @@ from .blueprint.layout import LIVE  # noqa: E402
 from .blueprint.model import PrintJob, SheetOptions  # noqa: E402
 from .blueprint.render import TWO_TONE, render_sheet  # noqa: E402
 from .blueprint.report import sheet_unit  # noqa: E402
-from .blueprint.theme import SPECTRA_THEMES, THEMES, glass  # noqa: E402
+from .blueprint.theme import glass, theme_for  # noqa: E402
+from .blueprint import cell_look  # noqa: E402
 
 log = logging.getLogger(__name__)
 
 PLUGIN_ID = "print_blueprint"
 RENDER_SAFE_ENDPOINTS: tuple[str, ...] = ("print_blueprint_admin.image", "print_blueprint_admin.example",
-                                        "print_blueprint_admin.ready",)
+                                        "print_blueprint_admin.ready", "print_blueprint_admin.look",)
 
 METHODS = ("toolpath", "preview", "ai")
 BACKGROUNDS = ("blue", "white", "black")
@@ -484,7 +485,7 @@ def _hex(c) -> str:
 
 
 def _colors(opts: SheetOptions) -> dict[str, str]:
-    th = (SPECTRA_THEMES if opts.panel in TWO_TONE else THEMES)[opts.background]
+    th = theme_for(opts)
     return {"bg": _hex(th["bg"]), "ink": _hex(th["ink"])}
 
 
@@ -794,15 +795,18 @@ def fetch(options: dict[str, Any], settings: dict[str, Any], *, ctx: dict[str, A
     size = _size(ctx)
     opts = sheet_options(options, resolve_panel(options.get("panel"), ctx))
     opts = dataclasses.replace(opts, clock=resolve_clock(ctx), tz=resolve_tz())
+    look = cell_look.normalise(ctx.get("cell_look")) if "cell_look" in ctx else cell_look.saved(ctx, options)
+    opts = cell_look.apply(opts, look)
     device = str(ctx.get("target_device_id") or "")
     _DATA_DIRS[:] = [data_dir]
     if device and not preview:
         cycles = _bool(options.get("button_cycles_background"), True)
-        if cycles:
+        if cycles and not look:
             opts = dataclasses.replace(opts, background=_paper_background(data_dir, device, opts.background))
         _note_cycling(data_dir, device, cycles)
     idle = str(options.get("idle") or "last")
-    base = {"w": size[0], "h": size[1], "background": opts.background, "colors": _colors(opts)}
+    base = {"w": size[0], "h": size[1], "background": opts.background, "colors": _colors(opts),
+            "cell_look": look, "look_preview": preview, "look_panel": opts.panel, "look_device": device}
     if preview:
         return _editor_fetch(options, base, size, opts, data_dir)
     memo = (str(data_dir), str(options.get("printer") or ""), size, json.dumps(dataclasses.asdict(opts)), idle)
@@ -971,6 +975,11 @@ def _example_url(method: str, options: dict | None = None) -> str:
     # The image is small, but is laid out at the real cell size before reduction.
     opts = sheet_options(values, resolve_panel(values.get("panel"), context))
     query = {"w": size[0], "h": size[1], **dataclasses.asdict(opts)}
+    query.pop("palette")
+    query.pop("font_path")
+    look = cell_look.saved(context, values)
+    if look:
+        query["look"] = json.dumps(look, separators=(",", ":"))
     query.pop("method")
     query.update(thumb=1, rev=EXAMPLE_REV)
     return f"/plugins/{PLUGIN_ID}/example/{method}.png?{urlencode(query)}"
@@ -1162,12 +1171,36 @@ def blueprint():
         response.headers["Cache-Control"] = "no-store"
         return response
 
+    @bp.get("/look")
+    def look():
+        # The browser supplies resolved CSS, never a font URL/path or permission to spend.
+        try:
+            options = json.loads(request.args.get("options", "{}"))
+            values = json.loads(request.args.get("look", "null"))
+        except ValueError:
+            abort(400)
+        if not isinstance(options, dict) or (values is not None and cell_look.normalise(values) is None):
+            abort(400)
+        if request.args.get("panel") in PANELS:
+            options["panel"] = request.args["panel"]
+        context = {"data_dir": str(_data_dir()), "cell_w": _int_arg(request.args.get("w"), 1200, 64, 4096),
+                   "cell_h": _int_arg(request.args.get("h"), 800, 64, 4096),
+                   "preview": request.args.get("preview") == "1", "settled": False, "cell_look": values,
+                   "target_device_id": request.args.get("target", "")}
+        response = Response(json.dumps(fetch(options, _own_settings(), ctx=context)), mimetype="application/json")
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
     @bp.get("/example/<method>.png")
     def example(method: str):
         if method not in METHODS:
             abort(404)
         size = _size({"cell_w": request.args.get("w"), "cell_h": request.args.get("h")})
         opts = sheet_options({**request.args, "method": method}, request.args.get("panel", "colour"))
+        try:
+            opts = cell_look.apply(opts, json.loads(request.args.get("look", "null")))
+        except ValueError:
+            abort(400)
         full = _example_path(_data_dir(), size, opts)
         path = full
         if request.args.get("thumb") == "1":

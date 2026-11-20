@@ -13,6 +13,32 @@ function colour(value, fallback) {
   return HEX.test(String(value || "")) ? value : fallback;
 }
 
+function cellLook(shadow) {
+  const cell = shadow.host?.closest(".cell");
+  if (!cell || !(cell.getAttribute("data-theme") || cell.getAttribute("data-style") ||
+                 cell.style.getPropertyValue("--font-family"))) return null;
+  const css = getComputedStyle(shadow.host);
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 1;
+  const pen = canvas.getContext("2d");
+  const hex = (token, fallback) => {
+    pen.fillStyle = fallback;
+    pen.fillStyle = css.getPropertyValue(token).trim() || fallback;
+    pen.fillRect(0, 0, 1, 1);
+    return "#" + Array.from(pen.getImageData(0, 0, 1, 1).data).slice(0, 3)
+      .map(v => v.toString(16).padStart(2, "0")).join("");
+  };
+  return {bg: hex("--surface", "#ffffff"), ink: hex("--text-primary", "#000000"),
+          rule: hex("--text-secondary", "#555555"), accent: hex("--accent-4", "#000000"),
+          font: css.getPropertyValue("--font-family").trim()};
+}
+
+function sameLook(a, b) {
+  if (!a || !b) return !a && !b;
+  const family = s => String(s).split(",")[0].trim().replace(/["']/g, "").toLowerCase();
+  return ["bg", "ink", "rule", "accent"].every(k => a[k] === b[k]) && family(a.font) === family(b.font);
+}
+
 export default async function render(shadow, ctx) {
   const t = ctx?.t || ((key, fallback) => fallback ?? key);
   let data = ctx?.data ?? {};
@@ -29,6 +55,27 @@ export default async function render(shadow, ctx) {
       }
     } catch {
       // Keep the quick sheet on a timeout or failed request.
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  const look = cellLook(shadow);
+  if (!sameLook(look, data.cell_look)) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 9_000);
+    try {
+      const query = new URLSearchParams({look: JSON.stringify(look), options: JSON.stringify(ctx?.cell?.options || {}),
+        w: data.w || ctx?.cell?.w || 1200, h: data.h || ctx?.cell?.h || 800,
+        preview: data.look_preview ? "1" : "0", panel: data.look_panel || "colour",
+        target: data.look_device || ""});
+      const response = await fetch((window.TESSERAE_URL_PREFIX || "") + "/plugins/print_blueprint/look?" + query,
+                                   {signal: controller.signal, cache: "no-store"});
+      if (response.ok) {
+        const styled = await response.json();
+        if (!styled.error) data = {...data, ...styled};
+      }
+    } catch {
+      // Keep the last usable sheet if the live editor's look cannot be resolved in time.
     } finally {
       clearTimeout(timer);
     }

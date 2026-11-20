@@ -103,3 +103,5 @@ class SheetOptions:
     show_progress: bool = True  # False: finished part, no current-layer marker or nozzle-layer callout
     clock: str = "h23"  # h12 (2:47 PM) | h23 (14:47): the device locale's clock style
     tz: str = ""  # IANA zone the times are shown in (Tesserae's setting); "" = the process's own
+    palette: tuple[str, ...] = ()  # explicit cell look: background, text, rules, accent
+    font_path: str = ""  # a locally registered core font; never a browser-supplied path

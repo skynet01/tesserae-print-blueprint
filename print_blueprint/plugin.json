@@ -4,7 +4,6 @@
   "name": "Home Assistant, Print Blueprint",
   "version": "0.1.2",
   "kind": "widget",
-  "overrides_look": "Draws its own paper colours",
   "locales": ["en"],
   "description": "Shows what your Bambu Lab printer is printing as a blueprint of the part, with live print data from Home Assistant. Needs the Bambu Lab integration: https://github.com/greghesp/ha-bambulab",
   "icon": "ph-printer",
@@ -50,6 +49,7 @@
       "type": "select",
       "label": "Paper",
       "default": "blue",
+      "help": "Used with Look of this cell set to Use dashboard. A cell theme, style or font override supplies the sheet's colours and font instead.",
       "choices": [
         { "value": "blue", "label": "Blueprint" },
         { "value": "white", "label": "White" },

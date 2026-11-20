@@ -59,6 +59,10 @@ retain the model's license; the widget's AGPL license does not cover them.
 
 The sheet is drawn for the panel it ends up on. With **Panel** on Auto (the default) the widget asks Tesserae which screen the render is for: Spectra 6 panels get two or three of the panel's colours (the paper, the ink and a red accent on white paper), 16-grey and 4-grey panels get their grey steps, black-and-white panels get hard black lines, and anything else gets full colour. You can pin a panel type in the option instead. Type, line weight and icons scale with the cell, so a 4K frame does not get tiny text.
 
+With **Look of this cell** set to **Use dashboard**, Paper keeps its usual blueprint, white or black colours and osifont lettering. An explicit cell theme, style or font overrides Paper with that cell's flat surface, text, line and accent colours. The sheet uses a registered local font when available, with osifont for an unavailable face or missing glyph. Panel quantisation still applies, and low-contrast lines use the text ink.
+
+Previews read the cell's live CSS. Method thumbnails use its saved look when the core identifies the cell, so save and reopen the options after changing it. Core forms that omit the page/cell identity cannot distinguish identical widget options with different looks; those thumbnails use Paper. Gradient backgrounds and CSS effects stay outside the raster sheet.
+
 ![Landscape sheet on a colour screen](screenshots/toolpath-landscape-blue.jpg)
 
 On wide sheets the empty side space can hold sensor panels (temperatures, AMS slots, fans, machine hours) when the printer reports them and the part still has room. **Sensor panels** turns that off.
@@ -76,7 +80,7 @@ Tool racks show each nozzle's known filament name and a colour swatch after its 
 
 The widget adds a button action, `print_blueprint_cycle`. Each press moves that device's background white, blue, black, white, and repaints the panel in the same wake. The first press starts from the cell's own background. Map it under the device's Controls, Button map: `{"refresh": "print_blueprint_cycle"}` (or `"b"` for the physical key). Turn off *Refresh button cycles the background* in the cell options and the same mapping just redraws the frame with the latest sensor data.
 
-The editor always previews the cell's own Paper. Once you save a different Paper, the next screen render drops the button's colour override. Each device's base and pressed colours live together in `paper.json`; the old `cycle.json`, `shown.json` and `edited.json` files are ignored.
+The editor previews Paper unless the cell has an explicit look override. A cell look also takes precedence over the refresh button's paper colour. Once you save a different Paper, the next screen render drops the button's colour override. Each device's base and pressed colours live together in `paper.json`; the old `cycle.json`, `shown.json` and `edited.json` files are ignored.
 
 ## Show it only while printing
 
