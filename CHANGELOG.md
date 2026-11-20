@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Draw preview line art in mezzotint and shade the printed portion.
+- Centre tool rack swatches on their row labels.
 
 ## 0.1.3
 

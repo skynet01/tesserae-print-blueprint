@@ -560,6 +560,34 @@ def test_tool_rack_has_filament_swatches_without_text_collisions(panel):
     assert moved_swatch[1:5] == tuple(v + d for v, d in zip(swatches[0][1:5], (10, 20, 10, 20)))
 
 
+@pytest.mark.parametrize('size', [(1200, 1600), (1920, 1080), (480, 800)])
+@pytest.mark.parametrize('panel', ['colour', 'grey16', 'grey4', 'spectra', 'bw'])
+def test_rack_swatch_centres_on_painted_label(size, panel, monkeypatch):
+    from types import SimpleNamespace
+    from blueprint import render as renderer
+    from blueprint.layout import Metrics, rack_group
+    from blueprint.model import Tool
+
+    job = dataclasses.replace(corpus.h3c_job(), tools=[
+        Tool(i, 'docked', 'PLA', 30, 3, '#FF0000') for i in range(1, 10)])
+    rack = rack_group(job, Metrics(*size), size[0] * .5).moved(8.25, 4.75)
+    # Paint the real ops and panel quantisation on a small rack-only canvas.
+    plan = SimpleNamespace(ops=rack.ops, hero=None, report=None)
+    monkeypatch.setattr(renderer, 'compose', lambda *args, **kwargs: plan)
+    image, _ = renderer.render_sheet(job, None, (size[0] // 2 + 20, 440),
+                                      SheetOptions(background='white', panel=panel))
+    dark = np.asarray(image.convert('L')) < 150
+    labels = dict(rack.texts)
+    chips = [op for op in rack.ops if op[0] == 'swatch']
+    assert len(chips) == 9
+    for i, (_, x0, _, x1, _, _) in enumerate(chips, 1):
+        l, t, r, b = labels[f'T{i}']
+        row = dark[int(t):int(b) + 1]
+        text = np.flatnonzero(row[:, int(l):int(r) + 1].any(axis=1))
+        chip = np.flatnonzero(row[:, round(x0):round(x1) + 1].any(axis=1))
+        assert abs((chip[0] + chip[-1] - text[0] - text[-1]) / 2) <= 1
+
+
 def swatch_label_gap(group):
     label = next(b for s, b in group.texts if s == 'T1')
     chip = next(op for op in group.ops if op[0] == 'swatch')

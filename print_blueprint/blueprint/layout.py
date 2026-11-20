@@ -716,7 +716,9 @@ def rack_group(job: PrintJob, m: Metrics, w: float) -> Group | None:
     y = dotted_rows(g, 0, 0, w, [], fs, head="TOOL RACK")
     labels = [f"T{t.id}" for t in job.tools]
     chip_x = max(tlen(label, fs) for label in labels) + 4 * m.tm
-    chip = fs * 0.7
+    # Use the painted cap height at Pen's actual font size, not the em box.
+    _, cap_top, _, cap_bottom = tbox("T", fs, 0, 0)
+    chip = max(1, cap_bottom - cap_top)
     name_x = chip_x + chip + 3 * m.tm
     for t, label in zip(job.tools, labels):
         hrs = f"{t.hours:.1f} H" if t.hours and t.hours > 0 else ""
@@ -738,7 +740,11 @@ def rack_group(job: PrintJob, m: Metrics, w: float) -> Group | None:
             ax, ay = vb[0] + m.tm, vb[3] - m.tm + 1.5 * m.u
             g.line([(ax, ay), (ax + tlen("ACTIVE", fs), ay)], k=0.8)
         g.dots(nb[2] + m.u, vb[0] - m.u, y + fs * 0.8, fs * 0.42)
-        box = (chip_x, y + fs * 0.25, chip_x + chip, y + fs * 0.95)
+        _, top, _, bottom = tbox(label, fs, 0, y)
+        # Text bounds are half-open; the final swatch rectangle is inclusive.
+        cy = (top + bottom - 1) / 2
+        half = (chip - 1) / 2
+        box = (chip_x, cy - half, chip_x + chip - 1, cy + half)
         g.ops.append(("swatch", *box, t.color))
         g.extra.append(box)
         y += pitch(fs, 1.4, m)
