@@ -166,3 +166,22 @@ def test_grid_on_off_changes_pixels_on_every_paper_and_panel(paper, panel):
     assert not np.array_equal(np.asarray(on),np.asarray(off))
     assert rep_on.border == rep_off.border
     assert rep_on.texts == rep_off.texts  # border coordinates and title block survive
+
+
+@pytest.mark.parametrize('panel', ['grey16', 'grey4', 'bw'])
+def test_white_paper_uses_panel_white(server, tmp_path, panel):
+    result = server.fetch({'method': 'preview', 'background': 'white', 'panel': panel}, {},
+                          ctx=ctx(tmp_path, preview=True))
+    image = Image.open(image_file(server, tmp_path, result)).convert('RGB')
+    assert image.getpixel((0, 0)) == (255, 255, 255)
+
+
+@pytest.mark.parametrize('panel', ['grey16', 'grey4', 'bw'])
+@pytest.mark.parametrize('gamut', ['spectra_6', 'inky_7colour', 'bwr_3', 'bwry_4', 'mono'])
+def test_white_grey_sheet_on_colour_panel_uses_only_black_and_white(server, monkeypatch, tmp_path, panel, gamut):
+    monkeypatch.setattr(server, '_device_gamut', lambda _: gamut)
+    result = server.fetch({'method': 'preview', 'background': 'white', 'panel': panel}, {},
+                          ctx=ctx(tmp_path, preview=True, target_device_id='door'))
+    pixels = np.asarray(Image.open(image_file(server, tmp_path, result)).convert('RGB'))
+    assert set(map(tuple, pixels.reshape(-1, 3))) <= {(0, 0, 0), (255, 255, 255)}
+    assert result['look_panel'] == 'bw'

@@ -250,3 +250,25 @@ def test_real_sheet_worker_keeps_the_cell_palette(app: Flask, client: FlaskClien
     assert Image.open(io.BytesIO(response.data)).getpixel((0,0)) == (35,32,25)
     assert 'live_pending' not in data
     response.close()
+
+
+@pytest.mark.parametrize('mode', ['grey16', 'grey4', 'bw'])
+def test_white_grey_sheet_stays_flat_through_e1004_packing(app: Flask, mod: ModuleType,
+                                                         tmp_path: Path, mode: str) -> None:
+    import numpy as np
+    from app.state.page_store import Panel
+
+    with app.app_context():
+        data = mod.fetch({'method': 'preview', 'background': 'white', 'panel': mode}, {},
+                         ctx={'data_dir': str(tmp_path), 'preview': True,
+                              'cell_w': 480, 'cell_h': 640,
+                              'target_device_id': 'seeed_reterminal_e1004'})
+    assert data['look_panel'] == 'bw'
+    images = list((tmp_path / 'examples').glob('*.png'))
+    assert len(images) == 1
+    renderer = app.config['RENDERER_REGISTRY'].get('esp32_bin')
+    packed = renderer.transform(images[0].read_bytes(), panel=Panel(w=480, h=640, gamut='spectra_6'), settings={})
+    b = np.frombuffer(packed, dtype=np.uint8)
+    pixels = np.stack((b >> 4, b & 15), axis=1).reshape(640, 480)
+    assert set(np.unique(pixels)) <= {0, 1}
+    assert (pixels[:6, :] == 1).all()

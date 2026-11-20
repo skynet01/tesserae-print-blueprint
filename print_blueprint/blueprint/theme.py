@@ -90,6 +90,8 @@ def _contrast(a, b):
 def theme_for(opts) -> dict:
     two = opts.panel in ("spectra", "bw", "grey4")
     if not opts.palette:
+        if opts.background == "white" and opts.panel in ("grey16", "grey4", "bw"):
+            return dict(bg=(255, 255, 255), ink=(0, 0, 0), rule=(0, 0, 0), accent=(0, 0, 0))
         return dict((SPECTRA_THEMES if two else THEMES)[opts.background])
     bg, ink, rule, accent = [ImageColor.getrgb(c) for c in opts.palette]
     if opts.panel == "spectra":

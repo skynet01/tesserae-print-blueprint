@@ -59,6 +59,8 @@ retain the model's license; the widget's AGPL license does not cover them.
 
 The sheet is drawn for the panel it ends up on. With **Panel** on Auto (the default) the widget asks Tesserae which screen the render is for: Spectra 6 panels get two or three of the panel's colours (the paper, the ink and a red accent on white paper), 16-grey and 4-grey panels get their grey steps, black-and-white panels get hard black lines, and anything else gets full colour. You can pin a panel type in the option instead. Type, line weight and icons scale with the cell, so a 4K frame does not get tiny text.
 
+White paper uses pure white in grey and black-and-white modes. When the target screen has no grey inks, these modes use black lines and hatching on white paper.
+
 With **Look of this cell** set to **Use dashboard**, Paper keeps its usual blueprint, white or black colours and osifont lettering. An explicit cell theme, style or font overrides Paper with that cell's flat surface, text, line and accent colours. The sheet uses a registered local font when available, with osifont for an unavailable face or missing glyph. Panel quantisation still applies, and low-contrast lines use the text ink.
 
 Previews read the cell's live CSS. Method thumbnails use its saved look when the core identifies the cell, so save and reopen the options after changing it. Core forms that omit the page/cell identity cannot distinguish identical widget options with different looks; those thumbnails use Paper. Gradient backgrounds and CSS effects stay outside the raster sheet.

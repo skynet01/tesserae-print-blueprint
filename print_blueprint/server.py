@@ -457,6 +457,25 @@ def resolve_panel(option: Any, ctx: dict) -> str:
         return "colour"
 
 
+def target_safe_options(opts: SheetOptions, ctx: dict) -> SheetOptions:
+    """Keep white mono paper in the physical panel's available grey inks."""
+    if opts.background != "white" or opts.palette or opts.panel not in ("grey16", "grey4", "bw"):
+        return opts
+    device = ctx.get("target_device_id")
+    if not device:
+        return opts
+    try:
+        target = panel_for_gamut(_device_gamut(str(device)))
+    except Exception:
+        log.debug("print_blueprint: no target gamut for %s", device, exc_info=True)
+        return opts
+    if target in ("spectra", "bw"):
+        return dataclasses.replace(opts, panel="bw")
+    if target == "grey4" and opts.panel == "grey16":
+        return dataclasses.replace(opts, panel="grey4")
+    return opts
+
+
 def resolve_tz() -> str:
     """Tesserae's own timezone setting (its renders use it too), "" when unset or "system"."""
     try:
@@ -814,6 +833,7 @@ def fetch(options: dict[str, Any], settings: dict[str, Any], *, ctx: dict[str, A
         if cycles and not look:
             opts = dataclasses.replace(opts, background=_paper_background(data_dir, device, opts.background))
         _note_cycling(data_dir, device, cycles)
+    opts = target_safe_options(opts, ctx)
     idle = str(options.get("idle") or "last")
     base = {"w": size[0], "h": size[1], "background": opts.background, "colors": _colors(opts),
             "cell_look": look, "look_preview": preview, "look_panel": opts.panel, "look_device": device}
@@ -984,11 +1004,13 @@ def _example_url(method: str, options: dict | None = None) -> str:
     size = _size(context)
     # The image is small, but is laid out at the real cell size before reduction.
     opts = sheet_options(values, resolve_panel(values.get("panel"), context))
+    look = cell_look.saved(context, values)
+    if not look:
+        opts = target_safe_options(opts, context)
     query = {"w": size[0], "h": size[1], **dataclasses.asdict(opts)}
     query["show_grid"] = "auto" if opts.show_grid is None else "on" if opts.show_grid else "off"
     query.pop("palette")
     query.pop("font_path")
-    look = cell_look.saved(context, values)
     if look:
         query["look"] = json.dumps(look, separators=(",", ":"))
     query.pop("method")

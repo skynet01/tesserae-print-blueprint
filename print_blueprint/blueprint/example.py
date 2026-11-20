@@ -16,7 +16,7 @@ from .render import render_sheet
 from .report import sheet_unit
 
 EXAMPLE_NOTE = "Example: T800"
-EXAMPLE_REV = 1
+EXAMPLE_REV = 2
 ASSETS = Path(__file__).resolve().parents[1] / "static" / "example"
 
 

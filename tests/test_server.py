@@ -844,3 +844,32 @@ def test_grid_on_survives_method_thumbnail_url(server, paper):
     url=server._example_url('preview', {'background':paper,'show_grid':'on'})
     query={key:val[0] for key,val in parse_qs(urlsplit(url).query).items()}
     assert server.sheet_options(query,'colour').grid_enabled
+
+
+@pytest.mark.parametrize('panel', ['colour', 'spectra', 'grey16', 'grey4', 'bw'])
+@pytest.mark.parametrize('paper', ['blue', 'black'])
+def test_target_safe_options_preserves_dark_papers(server, monkeypatch, panel, paper):
+    monkeypatch.setattr(server, '_device_gamut', lambda _: 'spectra_6')
+    opts = server.sheet_options({'background': paper}, panel)
+    assert server.target_safe_options(opts, {'target_device_id': 'door'}) is opts
+
+
+@pytest.mark.parametrize('panel', ['colour', 'spectra'])
+def test_target_safe_options_preserves_colour_modes(server, monkeypatch, panel):
+    monkeypatch.setattr(server, '_device_gamut', lambda _: 'spectra_6')
+    opts = server.sheet_options({'background': 'white'}, panel)
+    assert server.target_safe_options(opts, {'target_device_id': 'door'}) is opts
+
+
+def test_target_safe_options_preserves_explicit_cell_look(server, monkeypatch):
+    import dataclasses
+    monkeypatch.setattr(server, '_device_gamut', lambda _: 'spectra_6')
+    opts = dataclasses.replace(server.sheet_options({'background': 'white'}, 'grey16'),
+                               palette=('#ffffff', '#000000', '#888888', '#444444'))
+    assert server.target_safe_options(opts, {'target_device_id': 'door'}) is opts
+
+
+def test_white_grey_sheet_respects_four_grey_target(server, monkeypatch):
+    monkeypatch.setattr(server, '_device_gamut', lambda _: 'gray_4')
+    opts = server.sheet_options({'background': 'white'}, 'grey16')
+    assert server.target_safe_options(opts, {'target_device_id': 'frame'}).panel == 'grey4'
