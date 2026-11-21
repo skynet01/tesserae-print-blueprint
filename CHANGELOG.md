@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## 0.1.5
+
 - Show known filament profiles on the rack, material line and callout.
 
 ## 0.1.4
