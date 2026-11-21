@@ -1,0 +1,107 @@
+{% extends "_base.html" %}
+{% from "_components.html" import select_field, number_input, button, card_head %}
+{% block title %}Compare picture methods, Tesserae{% endblock %}
+
+{#- The compare page inside Tesserae's layout. server.render_compare() falls
+    back to the widget's standalone page when a core lacks these templates
+    or macros. Pictures are data URIs drawn by compare_view(); this page never
+    starts or pays for an AI picture. -#}
+{% block main %}
+{% set icons = {'toolpath': 'path', 'preview': 'pencil-simple-line', 'ai': 'sparkle'} %}
+<div class="page-head">
+  <h1><i class="ph-bold ph-printer" aria-hidden="true"></i> Compare picture methods</h1>
+  <p class="lede">{{ title }}. The cell's Picture option picks one; Toolpaths falls back to line art when there is no sliced file.</p>
+</div>
+
+{% if sources %}
+<section class="card pb-compare-controls">
+  <form method="get" class="form form--row" data-pb-compare-form>
+    {{ select_field('pb-source', 'source', 'Source', source, sources) }}
+    {% if source == 'home_assistant' and printers %}
+    {{ select_field('pb-printer', 'printer', 'Printer', prefix, printers) }}
+    {% endif %}
+    {{ select_field('pb-background', 'background', 'Paper', background, backgrounds) }}
+    {{ select_field('pb-panel', 'panel', 'Panel', panel, panels) }}
+    {{ number_input('pb-w', 'w', 'Width', w, min=120, max=2400, unit='px') }}
+    {{ number_input('pb-h', 'h', 'Height', h, min=120, max=2400, unit='px') }}
+    <div class="actions actions--bottom">{{ button('Show') }}</div>
+  </form>
+</section>
+{% endif %}
+
+{% if problem %}
+<div class="migration-notice" role="status">
+  <i class="ph ph-warning migration-notice-icon" aria-hidden="true"></i>
+  <div class="migration-notice-body">{{ problem }}</div>
+</div>
+{% endif %}
+
+{% if figures %}
+<div class="pb-compare">
+  <div class="pb-compare-grid">
+    {% for fig in figures %}
+    <section class="card pb-compare-card" data-method="{{ fig.method }}">
+      {{ card_head(fig.name, icon_name=icons.get(fig.method), level=2) }}
+      {% if fig.image %}
+      <img class="pb-compare-img" src="{{ fig.image }}" width="{{ w }}" height="{{ h }}" alt="{{ fig.name }}" decoding="async">
+      {% else %}
+      <div class="pb-compare-why{% if fig.failed %} is-failed{% endif %}" style="aspect-ratio: {{ w }} / {{ h }}; max-width: {{ w }}px">
+        <i class="ph ph-{{ 'warning' if fig.failed else 'image-broken' }}" aria-hidden="true"></i>
+        <p>{{ fig.why }}</p>
+      </div>
+      {% endif %}
+    </section>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<style>
+  .pb-compare-controls .form--row .field { margin: 0; }
+  .pb-compare-controls .field--unit input { width: 7em; }
+  .pb-compare-controls .actions--bottom { margin-left: auto; }
+  .pb-compare { container-type: inline-size; }
+  .pb-compare-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--t-space-4);
+    align-items: start;
+  }
+  @container (min-width: 720px) {
+    .pb-compare-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  .pb-compare-grid > .card { margin: 0; }
+  .pb-compare-img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-inline: auto;
+    border-radius: var(--t-radius-sm);
+  }
+  .pb-compare-why {
+    width: 100%;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--t-space-2);
+    padding: var(--t-space-5);
+    box-sizing: border-box;
+    border: 1px dashed var(--t-border-strong);
+    border-radius: var(--t-radius-sm);
+    background: var(--t-surface-sunk);
+    color: var(--t-muted);
+    text-align: center;
+  }
+  .pb-compare-why .ph { font-size: 28px; }
+  .pb-compare-why.is-failed .ph { color: var(--t-danger); }
+  .pb-compare-why p {
+    margin: 0;
+    max-width: 34ch;
+    font-size: var(--t-size-sm);
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+</style>
+{% endblock %}

@@ -1,5 +1,6 @@
 """Compare routes use each source's real job builder and never buy AI pictures."""
 
+import html
 import sys
 import time
 import urllib.error
@@ -13,14 +14,47 @@ from test_prusalink import printer as printer
 from test_server import FIX, p1s_states, server as server, wire
 
 
+# A stand-in for Tesserae's layout: the base page and the macros compare.html uses, with
+# the real macros' markup for selects, number boxes and buttons.
+SHELL = {
+    "_base.html": "<!doctype html><html><body class=\"admin\"><main>{% block main %}{% endblock %}</main></body></html>",
+    "_components.html": """
+{%- macro select_field(field_id, name, label, value='', options=[]) -%}
+<div class="field"><label for="{{ field_id }}">{{ label }}</label><select id="{{ field_id }}" name="{{ name }}">
+{%- for o in options %}<option value="{{ o.value }}" {% if o.value == value %}selected{% endif %}>{{ o.label }}</option>{% endfor -%}
+</select></div>
+{%- endmacro -%}
+{%- macro number_input(field_id, name, label, value=0, min=None, max=None, unit='') -%}
+<div class="field"><label for="{{ field_id }}">{{ label }}</label><input type="number" id="{{ field_id }}" name="{{ name }}" value="{{ value }}"></div>
+{%- endmacro -%}
+{%- macro button(label, variant='primary', type='submit') -%}<button type="{{ type }}" class="{{ variant }}"><span>{{ label }}</span></button>{%- endmacro -%}
+{%- macro card_head(title, icon_name=None, level=2) -%}<header class="card-head"><h{{ level }}>{{ title }}</h{{ level }}></header>{%- endmacro -%}
+""",
+}
+
+
+def make_app(server, shell=None):
+    from jinja2 import DictLoader
+
+    app = Flask(__name__)
+    if shell is not None:
+        app.jinja_loader = DictLoader(shell)
+    app.register_blueprint(server.blueprint(), url_prefix="/plugins/print_blueprint")
+    return app
+
+
+@pytest.fixture(params=["shell", "standalone"])
+def layout(request):
+    return request.param
+
+
 @pytest.fixture
-def compare(server, monkeypatch, tmp_path):
+def compare(server, monkeypatch, tmp_path, layout):
     monkeypatch.setattr(server, "_core", lambda: None)
     monkeypatch.setattr(server, "_data_dir", lambda: tmp_path)
     monkeypatch.setattr(server, "_own_settings", lambda: {})
     monkeypatch.setattr(server, "KieClient", lambda *a, **k: pytest.fail("compare must never buy AI"))
-    app = Flask(__name__)
-    app.register_blueprint(server.blueprint(), url_prefix="/plugins/print_blueprint")
+    app = make_app(server, SHELL if layout == "shell" else None)
 
     def get(source="home_assistant"):
         return app.test_client().get(
@@ -51,8 +85,8 @@ def test_home_assistant_compare_route(compare, server, monkeypatch):
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert page.count("<img") == 2
-    assert '<select name="source">' in page
-    assert '<select name="printer">' in page
+    assert 'name="source"' in page
+    assert 'name="printer"' in page
     assert 'value="home_assistant" selected' in page
     assert 'value="octoprint"' not in page and 'value="prusalink"' not in page
 
@@ -64,7 +98,7 @@ def test_octoprint_compare_route(compare, server, monkeypatch, api, thumbnail):
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert "block." in page and page.count("<img") == (2 if thumbnail else 1)
-    assert '<select name="printer">' not in page
+    assert 'name="printer"' not in page
     assert 'value="home_assistant"' not in page
     assert 'value="octoprint" selected' in page
     assert any("downloads/files/" in path for path in api) or thumbnail
@@ -81,7 +115,7 @@ def test_prusalink_compare_route(compare, server, monkeypatch, printer, binary):
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert "Cube." in page and page.count("<img") == 2
-    assert '<select name="printer">' not in page
+    assert 'name="printer"' not in page
     assert 'value="prusalink" selected' in page
     assert any(path.startswith("/usb/") for path in counts)
 
@@ -149,7 +183,7 @@ def test_compare_unreachable_source(compare, server, monkeypatch, selected):
 
     monkeypatch.setattr(module.Client, "get", offline)
     page = compare(selected).get_data(as_text=True)
-    assert "Couldn't reach" in page or "Couldn&#x27;t reach" in page
+    assert "Couldn't reach" in html.unescape(page)
     assert "widget settings" in page and "<img" not in page
 
 
@@ -237,3 +271,46 @@ def test_compare_keeps_ha_errors(compare, server, monkeypatch, state, status, re
 
 def test_compare_rejects_unknown_source(compare):
     assert compare("unknown").status_code == 400
+
+
+def _shell_page(server, monkeypatch, tmp_path, shell):
+    monkeypatch.setattr(server, "_data_dir", lambda: tmp_path)
+    monkeypatch.setattr(server, "_own_settings", lambda: {})
+    monkeypatch.setattr(server, "KieClient", lambda *a, **k: pytest.fail("compare must never buy AI"))
+    wire(server, monkeypatch, p1s_states())
+    return make_app(server, shell).test_client().get("/plugins/print_blueprint/compare?w=200&h=260")
+
+
+def test_compare_in_tesserae_layout(server, monkeypatch, tmp_path):
+    response = _shell_page(server, monkeypatch, tmp_path, SHELL)
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    assert '<body class="admin">' in page and "<!doctype html><html><body" in page
+    assert 'class="page-head"' in page and "ph-printer" in page and "Compare picture methods" in page
+    form = page[page.index("<form"):page.index("</form>")]
+    for name in ("source", "printer", "background", "panel", "w", "h"):
+        assert f'name="{name}"' in form
+    # Show is the form's only button, primary, after every control.
+    assert form.count("<button") == 1 and form.rindex('class="primary"') > form.rindex("<input")
+    assert ">Blueprint</option>" in form and ">Spectra 6</option>" in form
+    cards = page.split('class="card pb-compare-card"')[1:]
+    assert [c.split('data-method="')[1].split('"')[0] for c in cards] == ["toolpath", "preview", "ai"]
+    for card, name in zip(cards, ("Toolpaths", "Line art from the preview", "AI engraving")):
+        assert f"<h2>{name}</h2>" in card
+    assert "<img" in cards[0] and "<img" in cards[1]
+    assert "AI picture not made yet" in cards[2] and "<img" not in cards[2]
+
+
+@pytest.mark.parametrize("missing", ["_base.html", "_components.html", "number_input"])
+def test_compare_falls_back_on_an_older_tesserae(server, monkeypatch, tmp_path, missing):
+    shell = dict(SHELL)
+    if missing == "number_input":
+        shell["_components.html"] = shell["_components.html"].replace("macro number_input", "macro old_number")
+    else:
+        del shell[missing]
+    response = _shell_page(server, monkeypatch, tmp_path, shell)
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    assert page.startswith("<!doctype html>") and "<title>Print Blueprint: compare picture methods" in page
+    assert '<body class="admin">' not in page
+    assert page.count("<img") == 2 and "AI picture not made yet" in page

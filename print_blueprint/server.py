@@ -1220,16 +1220,22 @@ def _no_cover_reason(core: Any, prefix: str) -> str:
 _SOURCE_NAMES = {"home_assistant": "Home Assistant", "octoprint": "OctoPrint", "prusalink": "PrusaLink"}
 
 
-def compare_html(core: Any, data_dir: Path, prefix: str, w: int, h: int, background: str = "blue",
+_PAPER_NAMES = {"blue": "Blueprint", "white": "White", "black": "Black"}
+_PANEL_NAMES = {"colour": "Colour", "grey16": "16 greys", "grey4": "4 greys", "spectra": "Spectra 6",
+                "bw": "Black and white"}
+COMPARE_TEMPLATE = "print_blueprint/compare.html"
+
+
+def compare_view(core: Any, data_dir: Path, prefix: str, w: int, h: int, background: str = "blue",
                  panel: str = "colour", printers: list[tuple[str, str]] | None = None, *,
                  source: str = "home_assistant", settings: dict | None = None,
-                 sources: list[str] | None = None, problem: str = "") -> str:
-    """The three picture methods side by side for the printer's current job. The AI picture is
-    shown only when one was already made: this page never spends kie.ai credits."""
+                 sources: list[str] | None = None, problem: str = "") -> dict:
+    """What the compare page shows: the three picture methods for the printer's current job, each
+    a PNG data URI or the reason it is missing. The AI picture is shown only when one was already
+    made: this page never spends kie.ai credits."""
     data_dir = Path(data_dir)
     opts = dataclasses.replace(sheet_options({"background": background}, panel), clock=resolve_clock({}),
                                tz=resolve_tz())
-    esc = html.escape
     figures = []
     job = None
     if not problem:
@@ -1269,27 +1275,57 @@ def compare_html(core: Any, data_dir: Path, prefix: str, w: int, h: int, backgro
             elif method == "ai" and not ai_file.exists():
                 why = ("AI picture not made yet. Pick AI engraving and the next screen refresh makes one "
                        "(about US$0.02, needs a kie.ai API key).")
-            body = f'<p class="why">{esc(why)}</p>'
+            image, failed = "", False
             if not why:
                 try:
                     ai_png = ai_file.read_bytes() if method == "ai" else None
                     img = draw(job, (w, h), dataclasses.replace(opts, method=method), ai_png)
-                    shown = glass(img) if panel == "spectra" else img  # as the panel paints it
-                    body = f'<img src="{_data_uri(shown)}" width="{w}" height="{h}" alt="{esc(_METHOD_NAMES[method])}">'
+                    image = _data_uri(glass(img) if panel == "spectra" else img)  # as the panel paints it
                 except Exception as err:
                     log.warning("print_blueprint: compare %s failed", method, exc_info=True)
-                    body = f'<p class="why">Drawing failed: {esc(str(err))}</p>'
-            figures.append(f'<figure><figcaption>{esc(_METHOD_NAMES[method])}</figcaption>{body}</figure>')
-    picker = "".join(
-        f'<option value="{esc(p)}"{" selected" if p == prefix else ""}>{esc(label)}</option>'
-        for p, label in (printers or []))
-    source_picker = "".join(
-        f'<option value="{s}"{" selected" if s == source else ""}>{_SOURCE_NAMES[s]}</option>'
-        for s in (sources if sources is not None else ["home_assistant"]))
-    printer_picker = f'<label>Printer <select name="printer">{picker}</select></label>' if source == "home_assistant" else ""
-    bgs = "".join(f'<option{" selected" if b == opts.background else ""}>{b}</option>' for b in BACKGROUNDS)
-    pans = "".join(f'<option{" selected" if p == opts.panel else ""}>{p}</option>' for p in PANELS)
-    title = esc(job.title) if job is not None and job.title else "No print"
+                    why, failed = f"Drawing failed: {err}", True
+            figures.append({"method": method, "name": _METHOD_NAMES[method], "image": image, "why": why,
+                            "failed": failed})
+    source_list = list(sources if sources is not None else ["home_assistant"])
+    choices = [{"value": s, "label": _SOURCE_NAMES[s]} for s in source_list]
+    if source_list and source not in source_list:  # the page's own source, though it can't be used
+        choices.insert(0, {"value": source, "label": f"{_SOURCE_NAMES[source]} (unavailable)"})
+    return {
+        "title": job.title if job is not None and job.title else "No print",
+        "problem": problem, "figures": figures, "w": w, "h": h,
+        "source": source, "prefix": prefix, "background": opts.background, "panel": opts.panel,
+        "sources": choices,
+        "printers": [{"value": p, "label": label} for p, label in (printers or [])],
+        "backgrounds": [{"value": b, "label": _PAPER_NAMES.get(b, b)} for b in BACKGROUNDS],
+        "panels": [{"value": p, "label": _PANEL_NAMES.get(p, p)} for p in PANELS],
+    }
+
+
+def compare_html(core: Any, data_dir: Path, prefix: str, w: int, h: int, background: str = "blue",
+                 panel: str = "colour", printers: list[tuple[str, str]] | None = None, **kw) -> str:
+    """The compare page as a standalone document (see ``compare_view``)."""
+    return standalone_compare_html(compare_view(core, data_dir, prefix, w, h, background, panel, printers, **kw))
+
+
+def standalone_compare_html(view: dict) -> str:
+    """The compare page without Tesserae's layout, for a core without its templates or macros."""
+    esc = html.escape
+    w, h = view["w"], view["h"]
+
+    def options(items: list[dict], chosen: str) -> str:
+        return "".join(f'<option value="{esc(o["value"])}"{" selected" if o["value"] == chosen else ""}>'
+                       f'{esc(o["label"])}</option>' for o in items)
+
+    figures = []
+    for fig in view["figures"]:
+        if fig["image"]:
+            body = f'<img src="{fig["image"]}" width="{w}" height="{h}" alt="{esc(fig["name"])}">'
+        else:
+            body = f'<p class="why">{esc(fig["why"])}</p>'
+        figures.append(f'<figure><figcaption>{esc(fig["name"])}</figcaption>{body}</figure>')
+    printer_picker = (f'<label>Printer <select name="printer">{options(view["printers"], view["prefix"])}</select></label>'
+                      if view["source"] == "home_assistant" else "")
+    problem = view["problem"]
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>Print Blueprint: compare picture methods</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1303,12 +1339,12 @@ img {{ max-width: 100%; height: auto; display: block; box-shadow: 0 1px 4px #000
 .why {{ width: min({w}px, 90vw); color: #555; }} .problem {{ color: #a12; }}
 </style></head><body>
 <h1>Compare picture methods</h1>
-<p>{title}. The cell's Picture option picks one; Toolpaths falls back to line art when there is no sliced file.</p>
+<p>{esc(view["title"])}. The cell's Picture option picks one; Toolpaths falls back to line art when there is no sliced file.</p>
 <form method="get">
-<label>Source <select name="source">{source_picker}</select></label>
+<label>Source <select name="source">{options(view["sources"], view["source"])}</select></label>
 {printer_picker}
-<label>Paper <select name="background">{bgs}</select></label>
-<label>Panel <select name="panel">{pans}</select></label>
+<label>Paper <select name="background">{options(view["backgrounds"], view["background"])}</select></label>
+<label>Panel <select name="panel">{options(view["panels"], view["panel"])}</select></label>
 <label>Width <input name="w" type="number" value="{w}"></label>
 <label>Height <input name="h" type="number" value="{h}"></label>
 <button type="submit">Show</button>
@@ -1316,6 +1352,19 @@ img {{ max-width: 100%; height: auto; display: block; box-shadow: 0 1px 4px #000
 {f'<p class="problem">{esc(problem)}</p>' if problem else ''}
 <div class="row">{''.join(figures)}</div>
 </body></html>"""
+
+
+def render_compare(view: dict) -> str:
+    """The compare page inside Tesserae's layout; the standalone page on a core whose
+    ``_base.html`` or ``_components.html`` macros this template needs are missing."""
+    from flask import render_template
+    from jinja2 import TemplateError
+
+    try:
+        return render_template(COMPARE_TEMPLATE, **view)
+    except TemplateError:
+        log.info("print_blueprint: Tesserae layout unavailable, compare page uses its own", exc_info=True)
+        return standalone_compare_html(view)
 
 
 # ---------------------------------------------------------------- routes
@@ -1341,7 +1390,9 @@ def blueprint():
 
     # No "/" index on purpose: Tesserae lists any widget with one under
     # Widgets > Admin pages, and the compare page is a tool, not settings.
-    bp = Blueprint("print_blueprint_admin", __name__)
+    # template_folder resolves next to this file, so bundled and marketplace
+    # installs (/data/marketplace/print_blueprint) both find compare.html.
+    bp = Blueprint("print_blueprint_admin", __name__, template_folder="templates")
 
     @bp.get("/image/<name>")
     def image(name: str):
@@ -1435,19 +1486,20 @@ def blueprint():
                     problem, status = "No Bambu Lab printer in Home Assistant.", 404
         if printers:
             sources.insert(0, "home_assistant")
-        if source == "home_assistant" and problem and not sources:
-            return Response(problem, status=status, mimetype="text/plain")
         if source != "home_assistant":
             problem = "" if source in sources else f"Set the {_SOURCE_NAMES[source]} URL in widget settings."
+        if source != "home_assistant" or sources:
+            status = 200  # the error status only when Home Assistant was the page's one source
         want = _wanted(request.args.get("printer"))
         prefix = want if want in dict(printers) else (printers[0][0] if printers else "")
         w = _int_arg(request.args.get("w"), 600, 120, 2400)
         h = _int_arg(request.args.get("h"), 800, 120, 2400)
         bg = request.args.get("background") or "blue"
         panel = request.args.get("panel") or "colour"
-        page = compare_html(core, _data_dir(), prefix, w, h, bg, panel, printers,
+        view = compare_view(core, _data_dir(), prefix, w, h, bg, panel, printers,
                             source=source, settings=settings, sources=sources, problem=problem)
-        return Response(page, mimetype="text/html")
+        view["status"] = status
+        return Response(render_compare(view), status=status, mimetype="text/html")
 
     return bp
 

@@ -137,7 +137,11 @@ def test_compare_page(client: FlaskClient, printer: list[str]) -> None:
     resp = client.get(f"/plugins/{PLUGIN}/compare?printer={PREFIX}&w=240&h=320")
     assert resp.status_code == 200
     page = resp.get_data(as_text=True)
-    assert page.count("<img") == 1  # line art only: no sliced file, no AI picture yet
+    # Inside Tesserae's layout, not the standalone fallback page.
+    assert 'class="page-head"' in page and "ph-printer" in page and "data-pb-compare-form" in page
+    assert "Print Blueprint: compare picture methods" not in page
+    assert page.count('class="card pb-compare-card"') == 3
+    assert page.count('class="pb-compare-img"') == 1  # line art only: no sliced file, no AI picture yet
     assert "AI picture not made yet" in page and "No sliced file" in page
 
 
