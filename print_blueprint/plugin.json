@@ -43,7 +43,7 @@
         { "value": "preview", "label": "Line art from the preview", "image": "/plugins/print_blueprint/example/preview.png?w=1200&h=800&thumb=1" },
         { "value": "ai", "label": "AI engraving", "image": "/plugins/print_blueprint/example/ai.png?w=1200&h=800&thumb=1" }
       ],
-      "help": "Availability depends on the printer. Save and reopen to refresh. Toolpaths draws the real paths from the sliced file. Line art traces the slicer preview and also works for cloud prints. AI engraving repaints the preview once per print with kie.ai (about US$0.02, needs the kie.ai key in the widget settings). Compare all three for your current print at /plugins/print_blueprint/compare"
+      "help": "Availability depends on the printer. Save and reopen to refresh. Toolpaths draws the real paths from the sliced file. Line art traces the slicer preview and also works for cloud prints. AI engraving repaints the preview once per print with kie.ai (about US$0.02, needs the kie.ai key in the widget settings)."
     },
     {
       "name": "editor_preview",

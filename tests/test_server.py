@@ -123,7 +123,7 @@ def test_manifest_valid():
         assert opts[name]["label"]
     assert opts["printer"]["type"] == "select" and opts["printer"]["choices_from"] == "printer"
     assert [c["value"] for c in opts["method"]["choices"]] == ["toolpath", "preview", "ai"]
-    assert "/plugins/print_blueprint/compare" in opts["method"]["help"]
+    assert "/plugins/print_blueprint/compare" not in opts["method"]["help"]  # the page is hidden for now
     assert [c["value"] for c in opts["panel"]["choices"]] == ["auto", "colour", "grey16", "grey4", "spectra", "bw"]
     assert opts["panel"]["default"] == "auto"
     assert [c["value"] for c in opts["idle"]["choices"]] == ["last", "empty"]

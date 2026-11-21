@@ -48,8 +48,6 @@ Choose **Preview: Live print** to draw free toolpaths or line art for the curren
 
 The Picture thumbnails and their Enlarge view use the same example renderer. The canvas editor supplies the cell dimensions when its options drawer opens. Where the core supplies no dimensions, they use 1200 x 800. Reopen the drawer after changing the cell size or its options to refresh the thumbnails. To compare methods for the current print, open `/plugins/print_blueprint/compare` on your Tesserae server.
 
-The compare page defaults to Home Assistant. Its Source picker offers Home Assistant when a Bambu printer is connected, plus configured OctoPrint and PrusaLink URLs. Only Home Assistant has a Printer picker. You can also open `?source=octoprint` or `?source=prusalink` directly. OctoPrint and PrusaLink downloads have a ten-second network budget. The page says when a file or slicer thumbnail is unavailable. AI engraving shows only an existing picture; compare never buys one.
-
 | Toolpaths | Line art from the preview | AI engraving |
 | --- | --- | --- |
 | ![Toolpaths](screenshots/toolpath-door-blue-spectra.png) | ![Line art](screenshots/preview-door-blue-spectra.png) | ![AI engraving](screenshots/ai-door-blue-spectra.png) |
