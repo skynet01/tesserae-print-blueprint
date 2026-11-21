@@ -17,6 +17,7 @@ import numpy as np
 from PIL import Image
 
 from .art import Art
+from .filament import profile
 from .model import PrintJob, SheetOptions
 from .report import (MAX_DIAG_ON_PART, MIN_HERO, Box, LayoutReport, boxes_touch, hero_fill, inside, on_mask,
                      seg_box, seg_samples, seg_seg, sheet_unit)
@@ -292,7 +293,7 @@ def callouts(job: PrintJob, opts: SheetOptions, toolpath: bool) -> list[Callout]
         notes.append(f"{100 - inf:.0f} % OF THE INFILL IS AIR")
         out.append(Callout("walls", head, notes, 0.4, "R", "infill", 2))
 
-    name = (sl.filament_name if sl else None) or job.material or (sl.material if sl else None)
+    name = _print_profile(job)
     grams = (_pos(sl.weight_g) if sl else None) or _pos(job.weight_g)
     if name or grams:
         head = " · ".join(x for x in ((name or "").upper(), f"{grams:.0f} G" if grams else "") if x)
@@ -625,7 +626,7 @@ def stats_rows(job: PrintJob) -> list:
     rows = []
     if job.model:
         rows.append(("PRINTER", f"BAMBU LAB {job.model}"))
-    mat = (sl.filament_name if sl else None) or job.material or (sl.material if sl else None)
+    mat = _print_profile(job)
     if mat:
         rows.append(("MATERIAL", mat.upper()))
     layers = job.layers or (sl.layers if sl and sl.layers > 0 else None)
@@ -708,6 +709,11 @@ def times_group(job: PrintJob, opts: SheetOptions, m: Metrics, w: float, accent:
     return g
 
 
+def _print_profile(job: PrintJob) -> str:
+    sl = job.slice
+    return profile({"name": job.material}, {"name": sl.filament_name, "type": sl.material} if sl else {})
+
+
 def rack_group(job: PrintJob, m: Metrics, w: float) -> Group | None:
     if not job.tools:
         return None
@@ -771,7 +777,8 @@ def panel_data(job: PrintJob) -> tuple[list, list]:
                 rows.append((f"SLOT {i}", "EMPTY"))
             else:
                 col = (t.color or "")[:7].upper()
-                rows.append((f"SLOT {i}" + (" · ACTIVE" if t.active else ""), f"{t.type} {col}".strip() or "LOADED"))
+                name = (t.profile or t.type).upper()
+                rows.append((f"SLOT {i}" + (" · ACTIVE" if t.active else ""), f"{name} {col}".strip() or "LOADED"))
         if job.ams_humidity:
             rows.append(("HUMIDITY", job.ams_humidity.upper()))
         left.append(("AMS", rows))

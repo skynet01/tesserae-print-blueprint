@@ -15,6 +15,7 @@ from typing import Callable
 from urllib.parse import quote, urlsplit
 
 from .files import prune, write_atomic
+from .filament import profile
 from .model import PrintJob, SliceFacts, Tool, Tray
 from .threemf import read_3mf
 from .units import to_c, to_m, to_mm
@@ -123,14 +124,14 @@ def _trays(h: _Ent) -> list[Tray]:
         empty = _truthy(a.get("empty"))
         found.append(((_natural(m.group(1) or ""), int(m.group(2))),
                       Tray("" if empty else str(a.get("type") or ""), str(a.get("color") or "")[:7],
-                           _truthy(a.get("active")), empty)))
+                           _truthy(a.get("active")), empty, "" if empty else profile(a))))
     found.sort(key=lambda t: t[0])
     trays = [t for _, t in found]
     for _, e in h.match(r"externalspool_external_spool"):
         a = e.get("attributes") or {}
         empty = _truthy(a.get("empty")) or str(e.get("state")).lower() == "empty"
         trays.append(Tray("" if empty else str(a.get("type") or ""), str(a.get("color") or "")[:7],
-                          _truthy(a.get("active")), empty))
+                          _truthy(a.get("active")), empty, "" if empty else profile(a)))
     return trays
 
 
@@ -154,13 +155,15 @@ def _tools(h: _Ent) -> list[Tool]:
     for m, e in h.match(r"hotendrack_printtool_(\d+)"):
         n = int(m.group(1))
         a = e.get("attributes") or {}
-        fil = str(a.get("filament_name") or "")
+        # Mounted and active feed are independent on a multi-nozzle printer.
+        # Tool slots are one-based; the active tray index is zero-based.
+        linked = (a.get("ams_id") is not None and a["ams_id"] == active.get("ams_index")
+                  and isinstance(active.get("tray_index"), int)
+                  and a.get("ams_slot") == active["tray_index"] + 1)
+        fil = profile(active, a) if linked else profile(a)
         color = str(a.get("color") or "")[:7]
-        if fil.lower() in _BAD:
-            fil = str(a.get("filament_type") or "")
-        if fil.lower() in _BAD:
-            fil = str(active.get("name") or "") if e.get("state") == "mounted" else ""
-            color = str(active.get("color") or "")[:7] if fil else ""
+        if linked and not color:
+            color = str(active.get("color") or "")[:7]
         tools.append(Tool(n, str(e.get("state")), fil, h.temp(f"hotendrack_printtool_{n}_temperature"),
                           h.num(f"hotendrack_printtool_{n}_print_time"), color))
     return sorted(tools, key=lambda t: t.id)
@@ -344,6 +347,10 @@ def build_job(prefix: str, states: dict[str, dict], http_get: HistoryGet, cache_
 
     nd, length, objs, skipped = h.num("nozzle_size"), h.num("print_length"), h.num("printable_objects"), h.num("skipped_objects")
     active = h.attrs("active_tray")
+    trays = _trays(h)
+    tools = _tools(h)
+    loaded = [t for t in trays if t.active and not t.empty]
+    material = profile(active, {"name": loaded[0].profile} if len(loaded) == 1 else {})
     return PrintJob(
         prefix=prefix, model=_model(h, hist_model), printer_name=h.text("printer_name") or "", serial=serial,
         title=task or _stem(gname), status=status, progress=progress,
@@ -352,10 +359,10 @@ def build_job(prefix: str, states: dict[str, dict], http_get: HistoryGet, cache_
         start_ts=_ts(start), end_ts=_ts(h.text("end_time")),
         nozzle_d=_rounded(to_mm(nd, h.unit("nozzle_size")), 3) if nd else None, nozzle_type=h.text("nozzle_type"),
         nozzle_temp=h.pair("nozzle"), bed_temp=h.pair("bed"), chamber_c=h.temp("chamber_temperature"),
-        bed_type=h.text("print_bed_type"), material=active.get("name") or None,
+        bed_type=h.text("print_bed_type"), material=material or None,
         weight_g=_weight_g(h), length_m=_rounded(to_m(length, h.unit("print_length")), 3) if length else None,
         fans=_fans(h), speed=h.text("speed_profile"), usage_h=h.num("total_usage"),
         objects=int(objs) if objs is not None else None, skipped=int(skipped) if skipped is not None else None,
-        ams=_trays(h), ams_humidity=_humidity(h), tools=_tools(h), slice=sl, cover_png=cover,
+        ams=trays, ams_humidity=_humidity(h), tools=tools, slice=sl, cover_png=cover,
         job_key=job_key, has_3mf=entry is not None,
     )

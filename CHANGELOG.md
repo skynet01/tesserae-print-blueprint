@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Show known filament profiles on the rack, material line and callout.
+
 ## 0.1.4
 
 - Draw preview line art in mezzotint and shade the printed portion.

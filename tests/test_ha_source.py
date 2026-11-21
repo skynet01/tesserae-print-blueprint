@@ -408,7 +408,7 @@ def test_tool_filament_and_colour_come_from_each_nozzle(tmp_path):
     s['sensor.h3c_printer_hotendrack_printtool_2']['attributes'].update(
         filament_name='Bambu PLA Basic', filament_type='PLA', color='#FFFFFFFF')
     s['sensor.h3c_printer_hotendrack_printtool_3']['attributes'].update(
-        filament_name=None, filament_type='PETG', color='#123456FF')
+        filament_name=None, filament_type='PETG', filament_id='unmapped', color='#123456FF')
     job = build_job('h3c_printer', s, Http({'files': []}), tmp_path)
     assert job.tools[1].filament == 'Bambu PLA Basic'
     assert job.tools[1].color == '#FFFFFF'

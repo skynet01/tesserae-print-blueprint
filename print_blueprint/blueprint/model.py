@@ -10,6 +10,7 @@ class Tray:
     color: str
     active: bool
     empty: bool
+    profile: str = ""
 
 
 @dataclass
