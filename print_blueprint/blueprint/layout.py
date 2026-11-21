@@ -610,7 +610,7 @@ def title_group(job: PrintJob, opts: SheetOptions, m: Metrics, x, y, width, max_
     uy = ty - ts * 0.12 + 2 * m.tm + 8 * m.u  # air between the title and its rule
     g.line([(x, uy), (x + tw, uy)], k=0.8)
     if opts.show_subtitle and subtitle:
-        parts = [f"BAMBU LAB {job.model}"] if job.model else []  # no model: no maker line either
+        parts = [printer_label(job)] if printer_label(job) else []
         if job.printer_name:
             parts.append(f'"{job.printer_name.upper()}"')
         if job.job_key:
@@ -621,11 +621,17 @@ def title_group(job: PrintJob, opts: SheetOptions, m: Metrics, x, y, width, max_
     return g
 
 
+def printer_label(job: PrintJob) -> str:
+    if job.brand == "BAMBU LAB" and not job.model:
+        return ""  # preserve the Home Assistant sheet when the model is unknown
+    return " ".join(p for p in (job.brand, job.model) if p) or job.printer_name
+
+
 def stats_rows(job: PrintJob) -> list:
     sl = job.slice
     rows = []
-    if job.model:
-        rows.append(("PRINTER", f"BAMBU LAB {job.model}"))
+    if printer_label(job):
+        rows.append(("PRINTER", printer_label(job)))
     mat = _print_profile(job)
     if mat:
         rows.append(("MATERIAL", mat.upper()))

@@ -1,0 +1,71 @@
+{
+  "date": 1795251930,
+  "display": "block.gcode",
+  "gcodeAnalysis": {
+    "dimensions": {
+      "depth": 20.0,
+      "height": 0.6,
+      "width": 20.0
+    },
+    "estimatedPrintTime": 2.54742135623731,
+    "filament": {
+      "tool0": {
+        "length": 12.0,
+        "volume": 0.0
+      }
+    },
+    "printingArea": {
+      "maxX": 30.0,
+      "maxY": 30.0,
+      "maxZ": 0.6,
+      "minX": 10.0,
+      "minY": 10.0,
+      "minZ": 0.0
+    },
+    "travelArea": {
+      "maxX": 30.0,
+      "maxY": 30.0,
+      "maxZ": 0.6,
+      "minX": 0.0,
+      "minY": 0.0,
+      "minZ": 0.0
+    },
+    "travelDimensions": {
+      "depth": 30.0,
+      "height": 0.6,
+      "width": 30.0
+    }
+  },
+  "name": "block.gcode",
+  "origin": "local",
+  "path": "block.gcode",
+  "prints": {
+    "failure": 0,
+    "last": {
+      "date": 1795251974.0,
+      "printTime": 14.20348645746708,
+      "printerProfile": "_default",
+      "success": true
+    },
+    "success": 1
+  },
+  "refs": {
+    "download": "http://127.0.0.1:15080/downloads/files/local/block.gcode",
+    "resource": "http://127.0.0.1:15080/api/files/local/block.gcode"
+  },
+  "size": 563,
+  "statistics": {
+    "averagePrintTime": {
+      "_default": 14.20348645746708
+    },
+    "lastPrintTime": {
+      "_default": 14.20348645746708
+    }
+  },
+  "type": "machinecode",
+  "typePath": [
+    "machinecode",
+    "gcode"
+  ],
+  "user": "_api"
+}

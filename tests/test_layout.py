@@ -607,3 +607,14 @@ def test_tool_rack_long_name_keeps_an_ellipsis_and_short_leader():
     leaders = [op for op in group.ops if op[0] == 'dots']
     assert len(leaders) == 2
     assert all(op[2] - op[1] >= 2 * group.m.rack for op in leaders)
+
+
+def test_printer_label_preserves_bambu_and_accepts_other_sources():
+    from blueprint.layout import printer_label
+    import dataclasses
+    job = corpus.job_from_3mf(Path(__file__).parent / "fixtures" / "synthetic-block.3mf")
+    assert printer_label(job) == 'BAMBU LAB P1S'
+    assert printer_label(dataclasses.replace(job, model='')) == ''
+    assert printer_label(dataclasses.replace(job, brand='OCTOPRINT', model='')) == 'OCTOPRINT'
+    assert printer_label(dataclasses.replace(job, brand='', model='MK4S')) == 'MK4S'
+    assert printer_label(dataclasses.replace(job, brand='', model='', printer_name='Workshop')) == 'Workshop'

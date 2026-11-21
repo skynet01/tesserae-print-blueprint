@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Add Dashboard look paper to follow the dashboard's colours and font.
+- Read OctoPrint jobs and sliced G-code for blueprint sheets.
 
 ## 0.1.6
 

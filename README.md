@@ -1,15 +1,15 @@
 # Print Blueprint
 
-A Tesserae widget that shows what a Bambu Lab printer is printing as an old-school technical drawing. The part sits in the middle of the sheet, drawn from its real toolpaths, and hairline callouts around it carry the live numbers from Home Assistant: the layer the nozzle is on, temperatures, material, walls and infill, start time and ETA. Paper comes in blueprint blue, white or black, or follows the dashboard's look.
+A Tesserae widget that shows what a Bambu Lab or OctoPrint printer is printing as an old-school technical drawing. The part sits in the middle of the sheet, drawn from its real toolpaths, and hairline callouts around it carry the live numbers from Home Assistant: the layer the nozzle is on, temperatures, material, walls and infill, start time and ETA. Paper comes in blueprint blue, white or black, or follows the dashboard's look.
 
 ![Toolpaths on a Spectra 6 door frame](screenshots/toolpath-door-blue-spectra.png)
 
-Every number on the sheet comes from Home Assistant or from the sliced file. When a value is unknown its line is left out.
+Every number on the sheet comes from Home Assistant, OctoPrint or the sliced file. When a value is unknown its line is left out.
 
 ## What you need
 
-- Tesserae 0.484.1 or newer, with the Home Assistant Core widget connected to your Home Assistant.
-- The [Bambu Lab integration (ha-bambulab)](https://github.com/greghesp/ha-bambulab) in Home Assistant. Any model works: A1 and A1 mini, P1P, P1S, P2S, X1, X1C, X1E, H2D, H2S, H2C, H3C. Any number of printers, with or without an AMS (AMS lite, AMS 2 Pro, AMS HT and several units are read too), single or dual nozzles, and tool changer racks.
+- Tesserae 0.484.1 or newer. For Bambu Lab, connect the Home Assistant Core widget to Home Assistant.
+- For Bambu Lab: the [Bambu Lab integration (ha-bambulab)](https://github.com/greghesp/ha-bambulab) in Home Assistant. Any model works: A1 and A1 mini, P1P, P1S, P2S, X1, X1C, X1E, H2D, H2S, H2C, H3C. Any number of printers, with or without an AMS (AMS lite, AMS 2 Pro, AMS HT and several units are read too), single or dual nozzles, and tool changer racks.
 - Optional: a [kie.ai](https://kie.ai) API key for the AI engraving picture.
 
 ## Install
@@ -21,6 +21,14 @@ Zip the `print_blueprint` folder and pick it with **Upload widget** on Widgets �
 Add the widget to a page and choose the printer in its options. The list holds every `sensor.*_print_status` entity in Home Assistant, named by the printer's name. Leave it blank to show the first printer found. The widget reads every other value by the same prefix, so renamed entities in Home Assistant need the same prefix as their `print_status` sensor.
 
 The sheet is drawn at the exact size of the cell, so the widget is meant to fill a page or a large cell.
+
+## OctoPrint
+
+Set **OctoPrint URL** and **OctoPrint API key** under Settings → Widgets → Print Blueprint, then choose **Source: OctoPrint** in the cell. Use an application or user API key with printer status, job status, file listing and file download access. Home Assistant is optional for this source.
+
+The sheet shows the loaded filename, printer address, state, percentage, start time, ETA and hotend/bed temperatures. Toolpaths downloads the current file through OctoPrint's files API in the background. PrusaSlicer, Orca and Cura wall/layer comments are supported, with absolute or relative extrusion. Slicer comments supply material, weight, length, nozzle size and other known slice facts. Telemetry is shared for 10 seconds; reads have a two-second budget within the existing six-second render budget.
+
+Line art and AI engraving need an embedded PNG/JPG thumbnail or a thumbnail URL from an OctoPrint plugin. Without one, the sheet uses Toolpaths. Core OctoPrint does not report the current layer, so progress uses its percentage. AMS, tool racks and Bambu filament profiles stay absent. SD-card files without a download URL cannot supply toolpaths. The compare page and Home Assistant lineup condition below apply to Bambu printers.
 
 ## Picture methods
 
