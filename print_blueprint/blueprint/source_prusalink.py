@@ -258,10 +258,10 @@ def build_job_prusalink(settings, options, ctx, data_dir) -> PrintJob:
     return _enrich(job, facts, printer) if facts else job
 
 
-def prepare_job_prusalink(job, settings, data_dir) -> PrintJob:
+def prepare_job_prusalink(job, settings, data_dir, *, timeout=120.0) -> PrintJob:
     """Runner prepare_fn: downloads once per file revision and never changes print identity."""
     identity, client = _identity(settings)
-    client.deadline = time.monotonic() + 120
+    client.deadline = time.monotonic() + min(120.0, timeout)
     with _LOCK:
         state = _SOURCES.get(identity, {})
         meta, printer = state.get("jobs", {}).get(job.job_key, ({}, {}))

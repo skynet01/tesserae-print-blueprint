@@ -1217,8 +1217,13 @@ def _no_cover_reason(core: Any, prefix: str) -> str:
     return f"No preview picture: Home Assistant would not send {eid}."
 
 
+_SOURCE_NAMES = {"home_assistant": "Home Assistant", "octoprint": "OctoPrint", "prusalink": "PrusaLink"}
+
+
 def compare_html(core: Any, data_dir: Path, prefix: str, w: int, h: int, background: str = "blue",
-                 panel: str = "colour", printers: list[tuple[str, str]] | None = None) -> str:
+                 panel: str = "colour", printers: list[tuple[str, str]] | None = None, *,
+                 source: str = "home_assistant", settings: dict | None = None,
+                 sources: list[str] | None = None, problem: str = "") -> str:
     """The three picture methods side by side for the printer's current job. The AI picture is
     shown only when one was already made: this page never spends kie.ai credits."""
     data_dir = Path(data_dir)
@@ -1226,21 +1231,41 @@ def compare_html(core: Any, data_dir: Path, prefix: str, w: int, h: int, backgro
                                tz=resolve_tz())
     esc = html.escape
     figures = []
-    try:
-        job = current_job(core, prefix, data_dir)
-    except Exception as err:
-        job, problem = None, _friendly(core, err)
-    else:
-        problem = ""
+    job = None
+    if not problem:
+        try:
+            if source == "octoprint":
+                job = build_job_octoprint(settings or {}, {},
+                                          {"allow_download": True, "_download_budget_s": COMPARE_TIMEOUT_S}, data_dir)
+                if job.status == "offline":
+                    raise OSError("OctoPrint is offline")
+            elif source == "prusalink":
+                job = build_job_prusalink(settings or {}, {}, {}, data_dir)
+                job = prepare_job_prusalink(job, settings or {}, data_dir, timeout=COMPARE_TIMEOUT_S)
+            else:
+                job = current_job(core, prefix, data_dir)
+        except Exception as err:
+            job = None
+            if source == "home_assistant":
+                problem = _friendly(core, err)
+            elif isinstance(err, ValueError):
+                problem = str(err)
+            else:
+                problem = (f"Couldn't reach {_SOURCE_NAMES[source]} right now. "
+                           "Check its address and sign-in in widget settings.")
     if job is not None:
         ai_file = data_dir / "ai" / f"{job.job_key}.png"
         for method in METHODS:
             why = ""
             if method == "toolpath" and job.slice is None:
-                why = ("No sliced file in Home Assistant for this print (a cloud print, or an ha-bambulab "
-                       "version without print history).")
+                why = (("No sliced file in Home Assistant for this print (a cloud print, or an ha-bambulab "
+                        "version without print history).") if source == "home_assistant" else
+                       f"No sliced file available from {_SOURCE_NAMES[source]} for this print.")
             elif method == "preview" and not _preview_source(job):
-                why = _no_cover_reason(core, prefix)
+                why = (_no_cover_reason(core, prefix) if source == "home_assistant" else
+                       "No preview picture: this print has no slicer thumbnail available.")
+            elif method == "ai" and source != "home_assistant" and not _preview_source(job) and not ai_file.exists():
+                why = "No preview picture: AI engraving needs a slicer thumbnail."
             elif method == "ai" and not ai_file.exists():
                 why = ("AI picture not made yet. Pick AI engraving and the next screen refresh makes one "
                        "(about US$0.02, needs a kie.ai API key).")
@@ -1258,6 +1283,10 @@ def compare_html(core: Any, data_dir: Path, prefix: str, w: int, h: int, backgro
     picker = "".join(
         f'<option value="{esc(p)}"{" selected" if p == prefix else ""}>{esc(label)}</option>'
         for p, label in (printers or []))
+    source_picker = "".join(
+        f'<option value="{s}"{" selected" if s == source else ""}>{_SOURCE_NAMES[s]}</option>'
+        for s in (sources if sources is not None else ["home_assistant"]))
+    printer_picker = f'<label>Printer <select name="printer">{picker}</select></label>' if source == "home_assistant" else ""
     bgs = "".join(f'<option{" selected" if b == opts.background else ""}>{b}</option>' for b in BACKGROUNDS)
     pans = "".join(f'<option{" selected" if p == opts.panel else ""}>{p}</option>' for p in PANELS)
     title = esc(job.title) if job is not None and job.title else "No print"
@@ -1276,7 +1305,8 @@ img {{ max-width: 100%; height: auto; display: block; box-shadow: 0 1px 4px #000
 <h1>Compare picture methods</h1>
 <p>{title}. The cell's Picture option picks one; Toolpaths falls back to line art when there is no sliced file.</p>
 <form method="get">
-<label>Printer <select name="printer">{picker}</select></label>
+<label>Source <select name="source">{source_picker}</select></label>
+{printer_picker}
 <label>Paper <select name="background">{bgs}</select></label>
 <label>Panel <select name="panel">{pans}</select></label>
 <label>Width <input name="w" type="number" value="{w}"></label>
@@ -1386,21 +1416,37 @@ def blueprint():
     @bp.get("/compare")
     def compare():
         core = _core()
+        settings = _own_settings()
+        source = request.args.get("source") or "home_assistant"
+        if source not in _SOURCE_NAMES:
+            return Response("Unknown printer source.", status=400, mimetype="text/plain")
+        sources = [s for s in ("octoprint", "prusalink") if str(settings.get(s + "_url") or "").strip()]
+        printers = []
+        problem, status = "", 200
         if core is None:
-            return Response("Install the Home Assistant Core widget first.", status=503, mimetype="text/plain")
-        try:
-            printers = printer_prefixes(core.get_states())
-        except Exception as err:
-            return Response(_friendly(core, err), status=502, mimetype="text/plain")
-        if not printers:
-            return Response("No Bambu Lab printer in Home Assistant.", status=404, mimetype="text/plain")
+            problem, status = "Install the Home Assistant Core widget first.", 503
+        else:
+            try:
+                printers = printer_prefixes(_states_within(core, CHOICES_BUDGET_S))
+            except Exception as err:
+                problem, status = _friendly(core, err), 502
+            else:
+                if not printers:
+                    problem, status = "No Bambu Lab printer in Home Assistant.", 404
+        if printers:
+            sources.insert(0, "home_assistant")
+        if source == "home_assistant" and problem and not sources:
+            return Response(problem, status=status, mimetype="text/plain")
+        if source != "home_assistant":
+            problem = "" if source in sources else f"Set the {_SOURCE_NAMES[source]} URL in widget settings."
         want = _wanted(request.args.get("printer"))
-        prefix = want if want in dict(printers) else printers[0][0]
+        prefix = want if want in dict(printers) else (printers[0][0] if printers else "")
         w = _int_arg(request.args.get("w"), 600, 120, 2400)
         h = _int_arg(request.args.get("h"), 800, 120, 2400)
         bg = request.args.get("background") or "blue"
         panel = request.args.get("panel") or "colour"
-        page = compare_html(core, _data_dir(), prefix, w, h, bg, panel, printers)
+        page = compare_html(core, _data_dir(), prefix, w, h, bg, panel, printers,
+                            source=source, settings=settings, sources=sources, problem=problem)
         return Response(page, mimetype="text/html")
 
     return bp

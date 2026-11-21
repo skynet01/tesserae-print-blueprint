@@ -319,7 +319,7 @@ def build_job_octoprint(settings, options, ctx, data_dir) -> PrintJob:
     ).hexdigest()
     sl = (
         _slice(
-            Client(base, key, 30.0),
+            Client(base, key, min(30.0, ctx.get("_download_budget_s", 30.0))),
             file,
             file_identity,
             Path(data_dir),

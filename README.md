@@ -28,7 +28,7 @@ Set **OctoPrint URL** and **OctoPrint API key** under Settings → Widgets → P
 
 The sheet shows the loaded filename, printer address, state, percentage, start time, ETA and hotend/bed temperatures. Toolpaths downloads the current file through OctoPrint's files API in the background. PrusaSlicer, Orca and Cura wall/layer comments are supported, with absolute or relative extrusion. Slicer comments supply material, weight, length, nozzle size and other known slice facts. Telemetry is shared for 10 seconds; reads have a two-second budget within the existing six-second render budget.
 
-Line art and AI engraving need an embedded PNG/JPG thumbnail or a thumbnail URL from an OctoPrint plugin. Without one, the sheet uses Toolpaths. Core OctoPrint does not report the current layer, so progress uses its percentage. AMS, tool racks and Bambu filament profiles stay absent. SD-card files without a download URL cannot supply toolpaths. The compare page and Home Assistant lineup condition below apply to Bambu printers.
+Line art and AI engraving need an embedded PNG/JPG thumbnail or a thumbnail URL from an OctoPrint plugin. Without one, the sheet uses Toolpaths. Core OctoPrint does not report the current layer, so progress uses its percentage. AMS, tool racks and Bambu filament profiles stay absent. SD-card files without a download URL cannot supply toolpaths. The Home Assistant lineup condition below applies to Bambu printers.
 
 ## PrusaLink
 
@@ -36,7 +36,7 @@ Choose **Source: PrusaLink** in the cell options. Under Settings → Widgets →
 
 The sheet shows the job title, printer name, progress, nozzle and bed temperatures, start time and ETA. It reads material, filament weight and length, nozzle size and slicer facts from the current file. The layer comes from live Z height matched to the sliced layer heights. Toolpaths use downloaded `.gcode` or `.bgcode`; binary files support Deflate, both Heatshrink windows and MeatPack, with PNG, JPEG and QOI thumbnails. Line art and AI engraving use the embedded preview or PrusaLink's thumbnail endpoint.
 
-Telemetry is cached for 20 seconds. Downloads and parsing run in the background; a slow printer cannot hold the data fetch past its six-second budget. Files are cached by printer, path, size and modification time. Downloads above 64 MiB and decoded files above 128 MiB use the thumbnail fallback. Files without outer-wall tags may have no toolpath drawing. Unknown values, tool racks and AMS panels are omitted. PrusaLink does not supply Bambu filament profiles or machine usage; the compare page and Home Assistant lineup-condition example below still apply to Bambu printers.
+Telemetry is cached for 20 seconds. Downloads and parsing run in the background; a slow printer cannot hold the data fetch past its six-second budget. Files are cached by printer, path, size and modification time. Downloads above 64 MiB and decoded files above 128 MiB use the thumbnail fallback. Files without outer-wall tags may have no toolpath drawing. Unknown values, tool racks and AMS panels are omitted. PrusaLink does not supply Bambu filament profiles or machine usage. The Home Assistant lineup-condition example below applies to Bambu printers.
 
 This source has not been tried on a real printer. Tests use a local fake PrusaLink server and Prusa's published binary G-code fixtures.
 
@@ -47,6 +47,8 @@ The **Picture** option picks how the part is drawn. The editor defaults to a bun
 Choose **Preview: Live print** to draw free toolpaths or line art for the current print. The chosen method's example stays up until its real sheet is ready, or when the printer is unavailable or idle. AI previews only use an engraving already made by a real screen render; previews never buy or collect AI tasks. This option only affects previews. Screens and pushes keep their normal behaviour.
 
 The Picture thumbnails and their Enlarge view use the same example renderer. The canvas editor supplies the cell dimensions when its options drawer opens. Where the core supplies no dimensions, they use 1200 x 800. Reopen the drawer after changing the cell size or its options to refresh the thumbnails. To compare methods for the current print, open `/plugins/print_blueprint/compare` on your Tesserae server.
+
+The compare page defaults to Home Assistant. Its Source picker offers Home Assistant when a Bambu printer is connected, plus configured OctoPrint and PrusaLink URLs. Only Home Assistant has a Printer picker. You can also open `?source=octoprint` or `?source=prusalink` directly. OctoPrint and PrusaLink downloads have a ten-second network budget. The page says when a file or slicer thumbnail is unavailable. AI engraving shows only an existing picture; compare never buys one.
 
 | Toolpaths | Line art from the preview | AI engraving |
 | --- | --- | --- |
