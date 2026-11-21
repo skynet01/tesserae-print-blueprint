@@ -13,7 +13,18 @@
   },
   "cell_options": [
     {
+      "name": "source",
+      "type": "select",
+      "label": "Source",
+      "default": "home_assistant",
+      "choices": [
+        { "value": "home_assistant", "label": "Home Assistant (Bambu Lab)" },
+        { "value": "octoprint", "label": "OctoPrint" }
+      ]
+    },
+    {
       "name": "printer",
+      "show_if": { "source": "home_assistant" },
       "type": "select",
       "label": "Printer",
       "default": "",
@@ -142,6 +153,20 @@
     }
   ],
   "settings": [
+    {
+      "name": "octoprint_url",
+      "type": "string",
+      "label": "OctoPrint URL",
+      "default": "",
+      "help": "Your OctoPrint address, for example http://octopi.local."
+    },
+    {
+      "name": "octoprint_api_key",
+      "type": "string",
+      "label": "OctoPrint API key",
+      "secret": true,
+      "default": ""
+    },
     {
       "name": "kie_api_key",
       "type": "string",

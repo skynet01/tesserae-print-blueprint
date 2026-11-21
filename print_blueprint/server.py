@@ -75,6 +75,7 @@ from .blueprint.art import Art, ai_art, preview_art, toolpath_art, walls_for  # 
 from .blueprint.files import png_bytes, prune, write_atomic  # noqa: E402
 from .blueprint.example import EXAMPLE_NOTE, EXAMPLE_REV, render_example  # noqa: E402
 from .blueprint.ha_source import build_job, no_sliced_files, printer_prefixes  # noqa: E402
+from .blueprint.source_octoprint import build_job_octoprint  # noqa: E402
 from .blueprint.jobs import RenderState, Runner, cache_key, family_of  # noqa: E402,F401  (RenderState: tests)
 from .blueprint.kie import KieClient  # noqa: E402,F401  (named so a test can prove compare never uses it)
 from .blueprint.layout import LIVE  # noqa: E402
@@ -626,6 +627,22 @@ def _prepare_fn(prefix: str, states: dict, http: HaHttp, data_dir: Path):
     return fn
 
 
+def _octoprint_prepare(settings: dict, options: dict, data_dir: Path):
+    def prepare(job: PrintJob):
+        full = build_job_octoprint(settings, options, {"allow_download": True}, data_dir)
+        # A file selected during the download belongs to the next render.
+        return full if full.job_key == job.job_key else job
+    return prepare
+
+
+def _octoprint_render(render_fn):
+    def render(job, size, opts, ai_png, note=""):
+        if not _preview_source(job) and opts.method in ("preview", "ai") and ai_png is None:
+            opts = dataclasses.replace(opts, method="toolpath")
+        return render_fn(job, size, opts, ai_png, note)
+    return render
+
+
 def _save(img, path: Path) -> None:
     write_atomic(path, png_bytes(img))
 
@@ -735,33 +752,40 @@ def _preview_draw(job, size, opts, ai_png, note=""):
 
 
 def _editor_fetch(options: dict, base: dict, size: tuple[int, int],
-                  opts: SheetOptions, data_dir: Path) -> dict:
+                  opts: SheetOptions, data_dir: Path, settings: dict | None = None) -> dict:
     def example(pending=False):
         return _example_result(base, data_dir, size, opts, pending)
 
     if options.get("editor_preview") != "live":
         return example()
-    core = _core()
-    if core is None:
+    octoprint = options.get("source") == "octoprint"
+    core = None if octoprint else _core()
+    if core is None and not octoprint:
         return example()
     try:
-        all_states = _states_within(core, STATES_BUDGET_S)
-        printers = dict(printer_prefixes(all_states))
-        prefix = _wanted(options.get("printer")) or next(iter(printers), "")
-        if prefix not in printers:
-            return example()
-        states = _states(all_states, prefix)
-        job = build_job(prefix, states, _http_for(core, timeout=HTTP_BUDGET_S),
-                        data_dir, allow_download=False)
+        if octoprint:
+            job = build_job_octoprint(settings or {}, options, {}, data_dir)
+            prefix = job.prefix
+            printers = {prefix: job.printer_name}
+            prepare = _octoprint_prepare(settings or {}, options, data_dir)
+        else:
+            all_states = _states_within(core, STATES_BUDGET_S)
+            printers = dict(printer_prefixes(all_states))
+            prefix = _wanted(options.get("printer")) or next(iter(printers), "")
+            if prefix not in printers:
+                return example()
+            states = _states(all_states, prefix)
+            job = build_job(prefix, states, _http_for(core, timeout=HTTP_BUDGET_S),
+                            data_dir, allow_download=False)
+            prepare = _prepare_fn(prefix, states, _http_for(core, timeout=BACKGROUND_TIMEOUT_S), data_dir)
         # An old failure or idle sheet doesn't help choose how a running print will look.
         if job.status not in LIVE or not job.title:
             return example()
         if opts.method == "ai" and not (data_dir / "ai" / f"{job.job_key}.png").is_file():
             return example()
         runner = _runner(data_dir)
-        st = runner.ensure(job, size, opts, _preview_draw, kie_key="",
-                           prepare_fn=_prepare_fn(prefix, states,
-                                                  _http_for(core, timeout=BACKGROUND_TIMEOUT_S), data_dir))
+        st = runner.ensure(job, size, opts, _octoprint_render(_preview_draw) if octoprint else _preview_draw,
+                           kie_key="", prepare_fn=prepare)
         ready = st.ready_path
         if ready is not None and not _sheet_note(ready):
             # newest() can include an old failed phase in this family. Require
@@ -841,36 +865,50 @@ def fetch(options: dict[str, Any], settings: dict[str, Any], *, ctx: dict[str, A
     base = {"w": size[0], "h": size[1], "background": opts.background, "colors": _colors(opts),
             "cell_look": look, "look_preview": preview, "look_panel": opts.panel, "look_device": device}
     if preview:
-        return _editor_fetch(options, base, size, opts, data_dir)
-    memo = (str(data_dir), str(options.get("printer") or ""), size, json.dumps(dataclasses.asdict(opts)), idle)
+        return _editor_fetch(options, base, size, opts, data_dir, settings)
+    memo = (str(data_dir), str(options.get("source") or "home_assistant"),
+            str(settings.get("octoprint_url") or ""), str(options.get("printer") or ""), size, json.dumps(dataclasses.asdict(opts)), idle)
 
-    core = _core()
-    if core is None:
-        return {"error": "Install the Home Assistant Core widget and connect it to Home Assistant."}
-    try:
-        all_states = _states_within(core, min(STATES_BUDGET_S, FETCH_BUDGET_S - (time.monotonic() - start) - 1))
-    except Exception as err:
-        msg = _friendly(core, err)
-        last = _LAST.get(memo)
-        return {**last, "note": msg} if last else {"error": msg}
+    octoprint = options.get("source") == "octoprint"
+    if octoprint:
+        try:
+            job = build_job_octoprint(settings, options, ctx, data_dir)
+        except ValueError as err:
+            return {"error": str(err)}
+        prefix, label = job.prefix, job.printer_name
+        prepare = _octoprint_prepare(settings, options, data_dir)
+        if job.slice is not None and not _preview_source(job):
+            opts = dataclasses.replace(opts, method="toolpath")
+    else:
+        core = _core()
+        if core is None:
+            return {"error": "Install the Home Assistant Core widget and connect it to Home Assistant."}
+        try:
+            all_states = _states_within(core, min(STATES_BUDGET_S, FETCH_BUDGET_S - (time.monotonic() - start) - 1))
+        except Exception as err:
+            msg = _friendly(core, err)
+            last = _LAST.get(memo)
+            return {**last, "note": msg} if last else {"error": msg}
 
-    printers = dict(printer_prefixes(all_states))
-    if not printers:
-        return _empty(base, "no_printer", "No Bambu Lab printer found",
-                      "Add the Bambu Lab integration (ha-bambulab) to Home Assistant.")
-    want = _wanted(options.get("printer"))
-    if want and want not in printers:
-        return _empty(base, "not_found", "Printer not found",
-                      f"Home Assistant has no printer called {want}. Pick one in this widget's options.", want)
-    prefix = want or next(iter(printers))
-    label = printers[prefix]
-    states = _states(all_states, prefix)
-    http = _http_for(core, timeout=HTTP_BUDGET_S, deadline=start + HTTP_BUDGET_S)
-    try:
-        job = build_job(prefix, states, http, data_dir, allow_download=False)
-    except Exception:
-        log.warning("print_blueprint: couldn't read %s", prefix, exc_info=True)
-        return {"error": f"Couldn't read {label} from Home Assistant right now."}
+        printers = dict(printer_prefixes(all_states))
+        if not printers:
+            return _empty(base, "no_printer", "No Bambu Lab printer found",
+                          "Add the Bambu Lab integration (ha-bambulab) to Home Assistant.")
+        want = _wanted(options.get("printer"))
+        if want and want not in printers:
+            return _empty(base, "not_found", "Printer not found",
+                          f"Home Assistant has no printer called {want}. Pick one in this widget's options.", want)
+        prefix = want or next(iter(printers))
+        label = printers[prefix]
+        states = _states(all_states, prefix)
+        http = _http_for(core, timeout=HTTP_BUDGET_S, deadline=start + HTTP_BUDGET_S)
+        try:
+            job = build_job(prefix, states, http, data_dir, allow_download=False)
+        except Exception:
+            log.warning("print_blueprint: couldn't read %s", prefix, exc_info=True)
+            return {"error": f"Couldn't read {label} from Home Assistant right now."}
+
+        prepare = _prepare_fn(prefix, states, _http_for(core, timeout=BACKGROUND_TIMEOUT_S), data_dir)
 
     runner = _runner(data_dir)
     if job.status not in LIVE:
@@ -897,8 +935,10 @@ def fetch(options: dict[str, Any], settings: dict[str, Any], *, ctx: dict[str, A
     # nothing, so after an option change no sheet was drawn until a panel push came along.)
     paid_key = "" if preview or not settled else kie_key
     render_fn = _render_fn(bool(kie_key))
+    if octoprint:
+        render_fn = _octoprint_render(render_fn)
     st = runner.ensure(job, size, opts, render_fn, kie_key=paid_key, ai_daily_cap=_cap(settings),
-                       prepare_fn=_prepare_fn(prefix, states, _http_for(core, timeout=BACKGROUND_TIMEOUT_S), data_dir))
+                       prepare_fn=prepare)
     ready, pending = st.ready_path, st.pending  # ready may be an older step of this sheet
     if st.note and not (preview and kie_key and "needs a kie.ai" in st.note):
         note = note or st.note
@@ -1030,10 +1070,18 @@ def _method_choices(options: dict[str, Any] | None) -> list[dict[str, Any]]:
             for v, label in _METHOD_NAMES.items()]
     if options is None:
         return rows
-    core = _core()
+    core = None if options.get("source") == "octoprint" else _core()
     why = _toolpath_blocker(core, options.get("printer")) if core is not None else ""
     if why:
         rows[0].update(disabled=True, reason=why)
+    if options.get("source") == "octoprint":
+        try:
+            job = build_job_octoprint(_own_settings(), options, {}, _data_dir())
+            if job.slice is not None and not _preview_source(job):
+                for row in rows[1:]:
+                    row.update(disabled=True, reason="Needs an embedded slicer thumbnail or an OctoPrint thumbnail plugin.")
+        except (ValueError, RuntimeError):
+            pass
     if not _has_kie_key(_own_settings()):
         rows[2].update(disabled=True, reason=NO_KEY_REASON)
     return rows

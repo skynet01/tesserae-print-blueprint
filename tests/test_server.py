@@ -873,3 +873,24 @@ def test_white_grey_sheet_respects_four_grey_target(server, monkeypatch):
     monkeypatch.setattr(server, '_device_gamut', lambda _: 'gray_4')
     opts = server.sheet_options({'background': 'white'}, 'grey16')
     assert server.target_safe_options(opts, {'target_device_id': 'frame'}).panel == 'grey4'
+
+
+def test_octoprint_fetch_without_home_assistant(server, monkeypatch, tmp_path):
+    import dataclasses
+    job = dataclasses.replace(corpus.job_from_3mf(BLOCK), prefix='octoprint_test', brand='OCTOPRINT',
+                              model='', printer_name='Workshop', tools=[], ams=[])
+    monkeypatch.setattr(server, '_core', lambda: pytest.fail('OctoPrint must not use Home Assistant'))
+    monkeypatch.setattr(server, 'build_job_octoprint', lambda *args: job)
+    options = {'source': 'octoprint', 'method': 'toolpath'}
+    server.fetch(options, {}, ctx=ctx(tmp_path))
+    assert server._runner(tmp_path).wait_idle(20)
+    out = server.fetch(options, {}, ctx=ctx(tmp_path))
+    assert out['printer'] == 'Workshop'
+    assert image_file(server, tmp_path, out).is_file()
+    preview = server.fetch({**options, 'editor_preview': 'live'}, {}, ctx=ctx(tmp_path, preview=True))
+    assert 'image' in preview
+
+
+def test_octoprint_missing_settings_is_actionable(server, monkeypatch, tmp_path):
+    monkeypatch.setattr(server, '_core', lambda: pytest.fail('OctoPrint must not use Home Assistant'))
+    assert 'OctoPrint URL' in server.fetch({'source': 'octoprint'}, {}, ctx=ctx(tmp_path))['error']

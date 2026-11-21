@@ -1,0 +1,1 @@
+{"job":{"file":{"name":"block.gcode","display":"block.gcode","path":"block.gcode","origin":"local","size":1200,"date":1700000000},"estimatedPrintTime":120,"filament":{"tool0":{"length":400,"volume":0.962}}},"progress":{"completion":50,"filepos":600,"printTime":60,"printTimeLeft":60},"state":"Printing"}

@@ -1,0 +1,32 @@
+{
+  "error": null,
+  "job": {
+    "estimatedPrintTime": 2.54742135623731,
+    "filament": {
+      "tool0": {
+        "length": 12.0,
+        "volume": 0.0,
+        "weight": null
+      }
+    },
+    "file": {
+      "date": 1795251930,
+      "display": "block.gcode",
+      "name": "block.gcode",
+      "origin": "local",
+      "path": "block.gcode",
+      "size": 563,
+      "upload": false
+    },
+    "lastPrintTime": null,
+    "user": "_api"
+  },
+  "progress": {
+    "completion": 100.0,
+    "filepos": 563,
+    "printTime": 14,
+    "printTimeLeft": 0,
+    "printTimeLeftOrigin": null
+  },
+  "state": "Operational"
+}

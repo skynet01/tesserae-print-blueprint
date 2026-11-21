@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Read OctoPrint jobs and sliced G-code for blueprint sheets.
+
 ## 0.1.6
 
 - Say which Bambu Lab integration settings Toolpaths needs, including Disable SSL verification on H2 and H3 printers.

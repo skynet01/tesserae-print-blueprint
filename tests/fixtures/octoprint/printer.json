@@ -1,0 +1,1 @@
+{"temperature":{"tool0":{"actual":205,"target":210},"bed":{"actual":59,"target":60}},"state":{"text":"Printing","flags":{"operational":true,"printing":true,"paused":false,"error":false,"closedOrError":false}}}
