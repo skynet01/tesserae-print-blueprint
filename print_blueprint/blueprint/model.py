@@ -88,6 +88,7 @@ class PrintJob:
     slice: SliceFacts | None
     cover_png: bytes | None
     job_key: str  # stable id of this print
+    brand: str = "BAMBU LAB"  # sources without a known manufacturer can use an empty brand
     has_3mf: bool = False  # the sliced file is in the printer's history (downloaded or not yet)
 
 
