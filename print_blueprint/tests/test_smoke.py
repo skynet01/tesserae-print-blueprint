@@ -305,3 +305,26 @@ def test_white_grey_sheet_stays_flat_through_e1004_packing(app: Flask, mod: Modu
     pixels = np.stack((b >> 4, b & 15), axis=1).reshape(640, 480)
     assert set(np.unique(pixels)) <= {0, 1}
     assert (pixels[:6, :] == 1).all()
+
+
+def test_prusalink_source_options(app: Flask) -> None:
+    from app.option_conditions import option_visible
+    manifest = app.config['PLUGIN_REGISTRY'].get(PLUGIN).manifest
+    specs = manifest['cell_options']
+    source = next(s for s in specs if s['name'] == 'source')
+    assert source['default'] == 'home_assistant'
+    assert any(c['value'] == 'prusalink' for c in source['choices'])
+    printer_option = next(s for s in specs if s['name'] == 'printer')
+    assert option_visible(printer_option, {}, specs)
+    assert not option_visible(printer_option, {'source': 'prusalink'}, specs)
+    secrets = {s['name']: s.get('secret') for s in manifest['settings']}
+    assert secrets['prusalink_password'] and secrets['prusalink_api_key']
+
+
+def test_prusalink_example_needs_no_ha(app: Flask, mod: ModuleType, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(mod, '_core', lambda: (_ for _ in ()).throw(AssertionError('PrusaLink cannot require HA')))
+    data_dir = app.config['PLUGIN_REGISTRY'].get(PLUGIN).data_dir
+    with app.test_request_context():
+        data = mod.fetch({'source': 'prusalink'}, {}, ctx={'data_dir': str(data_dir), 'preview': True,
+                                                       'cell_w': 240, 'cell_h': 320})
+    assert data['image'].startswith('/plugins/print_blueprint/image/')

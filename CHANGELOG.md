@@ -4,6 +4,7 @@
 
 - Add Dashboard look paper to follow the dashboard's colours and font.
 - Read OctoPrint jobs and sliced G-code for blueprint sheets.
+- Read PrusaLink prints, including binary G-code and slicer previews.
 
 ## 0.1.6
 
