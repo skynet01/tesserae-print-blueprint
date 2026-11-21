@@ -75,6 +75,7 @@ from .blueprint.art import Art, ai_art, preview_art, toolpath_art, walls_for  # 
 from .blueprint.files import png_bytes, prune, write_atomic  # noqa: E402
 from .blueprint.example import EXAMPLE_NOTE, EXAMPLE_REV, render_example  # noqa: E402
 from .blueprint.ha_source import build_job, no_sliced_files, printer_prefixes  # noqa: E402
+from .blueprint.source_prusalink import build_job_prusalink, prepare_job_prusalink  # noqa: E402
 from .blueprint.jobs import RenderState, Runner, cache_key, family_of  # noqa: E402,F401  (RenderState: tests)
 from .blueprint.kie import KieClient  # noqa: E402,F401  (named so a test can prove compare never uses it)
 from .blueprint.layout import LIVE  # noqa: E402
@@ -593,6 +594,8 @@ def _sheet_note(path: Path) -> str:
 def _drawn_note(job: PrintJob, opts: SheetOptions, runner_note: str, has_key: bool) -> str:
     """The footnote a sheet carries: why its picture is not the one the cell asked for."""
     if opts.method == "toolpath":
+        if job.prefix.startswith("prusalink_") and job.slice is None:
+            return "No sliced file from PrusaLink yet: drawn from the preview picture"
         return NOTE_NO_3MF if job.slice is None else ""
     if "needs a kie.ai" in runner_note:
         return "" if has_key else NOTE_NO_KEY  # with a key this is only a preview: it never pays
@@ -840,6 +843,8 @@ def fetch(options: dict[str, Any], settings: dict[str, Any], *, ctx: dict[str, A
     idle = str(options.get("idle") or "last")
     base = {"w": size[0], "h": size[1], "background": opts.background, "colors": _colors(opts),
             "cell_look": look, "look_preview": preview, "look_panel": opts.panel, "look_device": device}
+    if options.get("source") == "prusalink":
+        return _fetch_prusalink(options, settings, ctx, base, size, opts, data_dir, start)
     if preview:
         return _editor_fetch(options, base, size, opts, data_dir)
     memo = (str(data_dir), str(options.get("printer") or ""), size, json.dumps(dataclasses.asdict(opts)), idle)
@@ -931,6 +936,76 @@ def fetch(options: dict[str, Any], settings: dict[str, Any], *, ctx: dict[str, A
     if note:
         out["note"] = note
     if "image" in out:
+        _LAST[memo] = {k: v for k, v in out.items() if k not in ("live_refresh_s", "live_pending", "note")}
+    return out
+
+
+def _fetch_prusalink(options, settings, ctx, base, size, opts, data_dir, start):
+    """PrusaLink uses the same sheet Runner, render functions and six-second budget."""
+    preview = bool(ctx.get("preview"))
+    if preview and options.get("editor_preview") != "live":
+        return _example_result(base, data_dir, size, opts)
+    identity = hashlib.sha256(json.dumps(settings, sort_keys=True).encode()).hexdigest()
+    memo = (str(data_dir), "prusalink", identity, size, json.dumps(dataclasses.asdict(opts)), options.get("idle", "last"))
+    try:
+        job = build_job_prusalink(settings, options,
+            {**ctx, "_prusalink_budget_s": min(2, FETCH_BUDGET_S - (time.monotonic() - start))}, data_dir)
+    except Exception as err:
+        if preview:
+            return _example_result(base, data_dir, size, opts)
+        message = str(err) if isinstance(err, (OSError, ValueError)) else "Couldn't read PrusaLink right now."
+        last = _LAST.get(memo)
+        return {**last, "note": message} if last else {"error": message}
+    runner = _runner(data_dir)
+    label = job.printer_name or "Prusa"
+    if job.status not in LIVE:
+        if preview:
+            return _example_result(base, data_dir, size, opts)
+        if options.get("idle") == "empty":
+            return _empty(base, "no_print", "No print running", f"{label} is not printing.", label)
+        if not job.title:
+            last = _last_sheet(runner, job.prefix, size, data_dir, opts)
+            url = _url(last) if last else None
+            if url:
+                return {**base, "image": url, "printer": label,
+                        "title": str((runner.last_finished(job.prefix) or {}).get("title") or "")}
+            return _empty(base, "no_history", "No print running", f"{label} has no print to show yet.", label)
+    key = str(settings.get("kie_api_key_secret") or settings.get("kie_api_key") or "").strip()
+    if preview and opts.method == "ai" and not (runner.ai_dir / f"{job.job_key}.png").is_file():
+        return _example_result(base, data_dir, size, opts)
+    paid_key = key if not preview and ctx.get("settled", True) else ""
+    st = runner.ensure(job, size, opts, _preview_draw if preview else _render_fn(bool(key)),
+        kie_key=paid_key, ai_daily_cap=_cap(settings),
+        prepare_fn=lambda current: prepare_job_prusalink(current, settings, data_dir))
+    ready = st.ready_path
+    if preview:
+        if ready is None or _sheet_note(ready):
+            return _example_result(base, data_dir, size, opts, st.pending)
+        expected = cache_key(job, size, opts, ai_present=opts.method == "ai")
+        if ready.stem != expected:
+            return _example_result(base, data_dir, size, opts, st.pending)
+    out = {**base, "printer": label, "title": job.title}
+    url = _url(ready) if ready else None
+    note = st.note
+    if not url:
+        left = FETCH_BUDGET_S - (time.monotonic() - start)
+        quick = _quick(job, size, opts, data_dir) if left >= _quick_need(size, opts) else None
+        url = _url(quick) if quick else None
+    if url:
+        out["image"] = url
+        note = note or (_sheet_note(ready) if ready else "")
+    else:
+        out["empty"] = {"kind": "drawing", "title": "Drawing the blueprint",
+                        "detail": f"{label}: {job.title}".strip(": "), "printer": label}
+    if st.pending:
+        out.update(live_pending=1, live_refresh_s=LIVE_REFRESH_S)
+        if opts.method == "ai" and paid_key and st.key and not (runner.ai_dir / f"{job.job_key}.png").exists():
+            out["ai_wait"] = f"/plugins/{PLUGIN_ID}/ready/{st.key}"
+    if opts.method == "ai" and not key:
+        note = NOTE_NO_KEY
+    if note:
+        out["note"] = note
+    if "image" in out and not preview:
         _LAST[memo] = {k: v for k, v in out.items() if k not in ("live_refresh_s", "live_pending", "note")}
     return out
 
@@ -1030,7 +1105,7 @@ def _method_choices(options: dict[str, Any] | None) -> list[dict[str, Any]]:
             for v, label in _METHOD_NAMES.items()]
     if options is None:
         return rows
-    core = _core()
+    core = _core() if options.get("source", "home_assistant") == "home_assistant" else None
     why = _toolpath_blocker(core, options.get("printer")) if core is not None else ""
     if why:
         rows[0].update(disabled=True, reason=why)

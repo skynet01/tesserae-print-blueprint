@@ -1,15 +1,15 @@
 # Print Blueprint
 
-A Tesserae widget that shows what a Bambu Lab printer is printing as an old-school technical drawing. The part sits in the middle of the sheet, drawn from its real toolpaths, and hairline callouts around it carry the live numbers from Home Assistant: the layer the nozzle is on, temperatures, material, walls and infill, start time and ETA. Paper comes in blueprint blue, white or black.
+A Tesserae widget that shows what a Bambu Lab or PrusaLink printer is printing as an old-school technical drawing. The part sits in the middle of the sheet, drawn from its real toolpaths, and hairline callouts around it carry the live numbers from Home Assistant: the layer the nozzle is on, temperatures, material, walls and infill, start time and ETA. Paper comes in blueprint blue, white or black.
 
 ![Toolpaths on a Spectra 6 door frame](screenshots/toolpath-door-blue-spectra.png)
 
-Every number on the sheet comes from Home Assistant or from the sliced file. When a value is unknown its line is left out.
+Every number on the sheet comes from Home Assistant, PrusaLink or the sliced file. When a value is unknown its line is left out.
 
 ## What you need
 
-- Tesserae 0.484.1 or newer, with the Home Assistant Core widget connected to your Home Assistant.
-- The [Bambu Lab integration (ha-bambulab)](https://github.com/greghesp/ha-bambulab) in Home Assistant. Any model works: A1 and A1 mini, P1P, P1S, P2S, X1, X1C, X1E, H2D, H2S, H2C, H3C. Any number of printers, with or without an AMS (AMS lite, AMS 2 Pro, AMS HT and several units are read too), single or dual nozzles, and tool changer racks.
+- Tesserae 0.484.1 or newer. For Bambu Lab, connect the Home Assistant Core widget to your Home Assistant. PrusaLink connects directly.
+- For Bambu Lab: the [Bambu Lab integration (ha-bambulab)](https://github.com/greghesp/ha-bambulab) in Home Assistant. Any model works: A1 and A1 mini, P1P, P1S, P2S, X1, X1C, X1E, H2D, H2S, H2C, H3C. Any number of printers, with or without an AMS (AMS lite, AMS 2 Pro, AMS HT and several units are read too), single or dual nozzles, and tool changer racks.
 - Optional: a [kie.ai](https://kie.ai) API key for the AI engraving picture.
 
 ## Install
@@ -21,6 +21,16 @@ Zip the `print_blueprint` folder and pick it with **Upload widget** on Widgets �
 Add the widget to a page and choose the printer in its options. The list holds every `sensor.*_print_status` entity in Home Assistant, named by the printer's name. Leave it blank to show the first printer found. The widget reads every other value by the same prefix, so renamed entities in Home Assistant need the same prefix as their `print_status` sensor.
 
 The sheet is drawn at the exact size of the cell, so the widget is meant to fill a page or a large cell.
+
+## PrusaLink
+
+Choose **Source: PrusaLink** in the cell options. Under Settings → Widgets → Print Blueprint, set `prusalink_url` to the printer's address and enter `prusalink_password` (username `maker` by default), or `prusalink_api_key`. Password and API-key settings are stored as secrets. Sign-in follows the [PrusaLink widget](https://github.com/dmellok/tesserae-widget-prusalink): Digest supports MD5, MD5-sess and SHA-256; a password is also tried as an API key. No Home Assistant is needed. The settings hold one PrusaLink printer; other cells can still use Home Assistant.
+
+The sheet shows the job title, printer name, progress, nozzle and bed temperatures, start time and ETA. It reads material, filament weight and length, nozzle size and slicer facts from the current file. The layer comes from live Z height matched to the sliced layer heights. Toolpaths use downloaded `.gcode` or `.bgcode`; binary files support Deflate, both Heatshrink windows and MeatPack, with PNG, JPEG and QOI thumbnails. Line art and AI engraving use the embedded preview or PrusaLink's thumbnail endpoint.
+
+Telemetry is cached for 20 seconds. Downloads and parsing run in the background; a slow printer cannot hold the data fetch past its six-second budget. Files are cached by printer, path, size and modification time. Downloads above 64 MiB and decoded files above 128 MiB use the thumbnail fallback. Files without outer-wall tags may have no toolpath drawing. Unknown values, tool racks and AMS panels are omitted. PrusaLink does not supply Bambu filament profiles or machine usage; the compare page and Home Assistant lineup-condition example below still apply to Bambu printers.
+
+This source has not been tried on a real printer. Tests use a local fake PrusaLink server and Prusa's published binary G-code fixtures.
 
 ## Picture methods
 
@@ -103,7 +113,7 @@ Under Settings → Widgets → Print Blueprint:
 - **kie.ai API key**: only needed for AI engraving. Stored encrypted.
 - **AI pictures per day**: at most this many AI pictures a day across all printers.
 
-The widget declares `network:*` because your Home Assistant address is yours to choose; it also talks to kie.ai when AI engraving is on.
+The widget declares `network:*` because your Home Assistant or PrusaLink address is yours to choose; it also talks to kie.ai when AI engraving is on.
 
 On disk it keeps the sliced files, cover pictures and AI pictures of the last 12 prints, and the 40 newest sheets.
 

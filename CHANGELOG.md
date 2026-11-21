@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Read PrusaLink prints, including binary G-code and slicer previews.
+
 ## 0.1.6
 
 - Say which Bambu Lab integration settings Toolpaths needs, including Disable SSL verification on H2 and H3 printers.

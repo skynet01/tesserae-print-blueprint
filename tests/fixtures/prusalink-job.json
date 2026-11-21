@@ -1,0 +1,14 @@
+{
+  "id": 42,
+  "state": "PRINTING",
+  "file": {
+    "name": "CUBE~1.BGC",
+    "display_name": "Cube.bgcode",
+    "path": "/usb/Cube.bgcode",
+    "m_timestamp": 1648042843,
+    "size": 1222,
+    "refs": {
+      "download": "/usb/Cube.bgcode"
+    }
+  }
+}
