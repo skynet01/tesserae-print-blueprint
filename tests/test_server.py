@@ -82,6 +82,27 @@ def ctx(tmp_path, **kw):
     return c
 
 
+def test_dashboard_without_look_uses_blue_and_refresh_only(server, monkeypatch, tmp_path):
+    wire(server, monkeypatch, p1s_states())
+    c = ctx(tmp_path, target_device_id='door')
+    server.fetch({'background': 'blue'}, {}, ctx=c)
+    assert server.cycle_background(tmp_path, 'door') == 'black'
+    data = server.fetch({'background': 'dashboard'}, {}, ctx=c)
+    assert data['cell_look'] is None
+    assert data['colors']['bg'] == '#1c4688'
+    assert not server._cycling_enabled(tmp_path, 'door')
+    # Returning to blue must clear the old button override.
+    assert server.fetch({'background': 'blue'}, {}, ctx=c)['background'] == 'blue'
+
+
+@pytest.mark.parametrize('panel', ['colour', 'grey16', 'grey4', 'spectra', 'bw'])
+def test_dashboard_missing_look_is_pixel_identical_to_blue(server, tmp_path, panel):
+    c = ctx(tmp_path, preview=True)
+    blue = server.fetch({'background': 'blue', 'panel': panel}, {}, ctx=c)
+    dashboard = server.fetch({'background': 'dashboard', 'panel': panel}, {}, ctx=c)
+    assert blue['image'] == dashboard['image']
+
+
 def image_file(server, tmp_path, data) -> Path:
     url = data["image"]
     assert url.startswith("/plugins/print_blueprint/image/")

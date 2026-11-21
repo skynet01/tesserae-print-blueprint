@@ -79,8 +79,11 @@ def test_manifest_valid(app: Flask) -> None:
     from app.option_conditions import canonical_value, option_visible
     specs = registry.get(PLUGIN).manifest['cell_options']
     grid = next(s for s in specs if s['name'] == 'show_grid')
-    for paper in ('blue','white','black'):
+    for paper in ('blue','white','black','dashboard'):
         assert option_visible(grid, {'background':paper}, specs)
+    paper = next(s for s in specs if s['name'] == 'background')
+    assert paper['default'] == 'blue'
+    assert any(c['value'] == 'dashboard' for c in paper['choices'])
     assert canonical_value(grid, True) == 'auto'
     assert canonical_value(grid, False) == 'off'
 
@@ -178,9 +181,13 @@ def test_ready_route_only_collects_queued_work(app: Flask, client: FlaskClient, 
     assert "print_blueprint_admin.ready" in app.config["RENDER_SAFE_ENDPOINTS"]
 
 
-@pytest.mark.parametrize('theme', [None, 'dark', 'light'])
+@pytest.mark.parametrize('paper,theme', [
+    ('black', None), ('black', 'dark'), ('black', 'light'),
+    ('dashboard', None), ('dashboard', 'dark'), ('dashboard', 'light'),
+])
 def test_explicit_cell_look_and_method_thumbnail(app: Flask, client: FlaskClient, mod: ModuleType,
-                                                monkeypatch: pytest.MonkeyPatch, theme: str | None) -> None:
+                                                monkeypatch: pytest.MonkeyPatch, theme: str | None,
+                                                paper: str) -> None:
     from types import SimpleNamespace
     from flask import request
 
@@ -190,9 +197,10 @@ def test_explicit_cell_look_and_method_thumbnail(app: Flask, client: FlaskClient
     monkeypatch.setitem(app.config, 'PAGE_STORE', SimpleNamespace(get=lambda _: page))
     data_dir = app.config['PLUGIN_REGISTRY'].get(PLUGIN).data_dir
     with app.test_request_context():
-        data = mod.fetch({'background':'black'}, {}, ctx={'data_dir':str(data_dir), 'preview':True,
+        data = mod.fetch({'background':paper}, {}, ctx={'data_dir':str(data_dir), 'preview':True,
                          'placement_id':'test-page/look-cell', 'cell_w':320, 'cell_h':420})
-        if theme:
+        styled = bool(theme or paper == 'dashboard')
+        if styled:
             assert data['cell_look']['font'] == 'Inter'
             path = mod.cell_look.font_path('Inter')
             assert path.endswith('.woff2')
@@ -201,14 +209,14 @@ def test_explicit_cell_look_and_method_thumbnail(app: Flask, client: FlaskClient
             with theme_module.font_context(path):
                 assert theme_module.font_for('PLA', 20).getname()[0] == 'Inter'
                 assert theme_module.font_for('\uffff', 20).getname()[0] != 'Inter'
-            expected = '#232019' if theme == 'dark' else '#f7f5f0'
+            expected = '#f7f5f0' if theme == 'light' else '#232019'
             assert data['colors']['bg'] == expected
         else:
             assert data['cell_look'] is None
             assert data['colors']['bg'] == '#060a12'
         request.view_args = {'page_id':'test-page'}
-        thumb = mod._example_url('preview', {'background':'black'})
-        assert ('look=' in thumb) == bool(theme)
+        thumb = mod._example_url('preview', {'background':paper})
+        assert ('look=' in thumb) == styled
     response = client.get(data['image'])
     image = Image.open(io.BytesIO(response.data))
     assert image.getpixel((0, 0)) == tuple(bytes.fromhex(data['colors']['bg'][1:]))
@@ -216,6 +224,22 @@ def test_explicit_cell_look_and_method_thumbnail(app: Flask, client: FlaskClient
     thumb_response = client.get(thumb)
     assert thumb_response.status_code == 200
     thumb_response.close()
+
+
+@pytest.mark.parametrize('field,value', [('style', 'mono'), ('font', 'inter')])
+def test_dashboard_paper_keeps_style_or_font_cell_override(app: Flask, mod: ModuleType,
+                                                          monkeypatch: pytest.MonkeyPatch,
+                                                          field: str, value: str) -> None:
+    from types import SimpleNamespace
+    cell = SimpleNamespace(id='cell', plugin=PLUGIN, options={}, theme=None, style=None, font=None)
+    setattr(cell, field, value)
+    page = SimpleNamespace(cells=[cell], theme='dark', style='standard', font=None)
+    monkeypatch.setitem(app.config, 'PAGE_STORE', SimpleNamespace(get=lambda _: page))
+    with app.app_context():
+        legacy = mod.cell_look.saved({'placement_id':'page/cell'}, {'background':'blue'})
+        dashboard = mod.cell_look.saved({'placement_id':'page/cell'}, {'background':'dashboard'})
+        assert dashboard == legacy
+        assert dashboard['bg'] == '#232019'
 
 
 def test_browser_look_route_is_free_and_validates_font_and_colours(app: Flask, client: FlaskClient,
@@ -232,22 +256,31 @@ def test_browser_look_route_is_free_and_validates_font_and_colours(app: Flask, c
     assert client.get('/plugins/print_blueprint/look?look=%7B%22bg%22%3A%22bad%22%7D').status_code == 400
 
 
-def test_real_sheet_worker_keeps_the_cell_palette(app: Flask, client: FlaskClient, mod: ModuleType,
-                                                 printer: list[str], monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize('paper,cell_theme,page_theme,expected', [
+    ('blue', 'dark', 'light', (35, 32, 25)),
+    ('dashboard', None, 'light', (247, 245, 240)),
+    ('dashboard', None, 'dark', (35, 32, 25)),
+    ('dashboard', 'light', 'dark', (247, 245, 240)),
+])
+def test_real_sheet_worker_keeps_the_resolved_palette(app: Flask, client: FlaskClient, mod: ModuleType,
+                                                     printer: list[str], monkeypatch: pytest.MonkeyPatch,
+                                                     paper: str, cell_theme: str | None,
+                                                     page_theme: str, expected: tuple) -> None:
     from types import SimpleNamespace
-    cell = SimpleNamespace(id='cell', plugin=PLUGIN, options={}, theme='dark', style=None, font='inter')
-    page = SimpleNamespace(cells=[cell], theme='light', style='standard', font=None)
+    cell = SimpleNamespace(id='cell', plugin=PLUGIN, options={}, theme=cell_theme, style=None, font=None)
+    page = SimpleNamespace(cells=[cell], theme=page_theme, style='standard', font='inter')
     monkeypatch.setitem(app.config, 'PAGE_STORE', SimpleNamespace(get=lambda _: page))
     data_dir = app.config['PLUGIN_REGISTRY'].get(PLUGIN).data_dir
     ctx = {'data_dir':str(data_dir),'cell_w':320,'cell_h':420,'preview':False,
            'settled':True,'placement_id':'page/cell'}
     with app.test_request_context():
-        mod.fetch({'method':'preview'}, {}, ctx=ctx)
+        mod.fetch({'method':'preview', 'background':paper}, {}, ctx=ctx)
     assert mod._runner(data_dir).wait_idle()
     with app.test_request_context():
-        data = mod.fetch({'method':'preview'}, {}, ctx=ctx)
+        data = mod.fetch({'method':'preview', 'background':paper}, {}, ctx=ctx)
+        assert data['cell_look']['font'] == 'Inter'
     response = client.get(data['image'])
-    assert Image.open(io.BytesIO(response.data)).getpixel((0,0)) == (35,32,25)
+    assert Image.open(io.BytesIO(response.data)).getpixel((0,0)) == expected
     assert 'live_pending' not in data
     response.close()
 

@@ -1,6 +1,6 @@
 # Print Blueprint
 
-A Tesserae widget that shows what a Bambu Lab printer is printing as an old-school technical drawing. The part sits in the middle of the sheet, drawn from its real toolpaths, and hairline callouts around it carry the live numbers from Home Assistant: the layer the nozzle is on, temperatures, material, walls and infill, start time and ETA. Paper comes in blueprint blue, white or black.
+A Tesserae widget that shows what a Bambu Lab printer is printing as an old-school technical drawing. The part sits in the middle of the sheet, drawn from its real toolpaths, and hairline callouts around it carry the live numbers from Home Assistant: the layer the nozzle is on, temperatures, material, walls and infill, start time and ETA. Paper comes in blueprint blue, white or black, or follows the dashboard's look.
 
 ![Toolpaths on a Spectra 6 door frame](screenshots/toolpath-door-blue-spectra.png)
 
@@ -61,7 +61,9 @@ The sheet is drawn for the panel it ends up on. With **Panel** on Auto (the defa
 
 White paper uses pure white in grey and black-and-white modes. When the target screen has no grey inks, these modes use black lines and hatching on white paper.
 
-With **Look of this cell** set to **Use dashboard**, Paper keeps its usual blueprint, white or black colours and osifont lettering. An explicit cell theme, style or font overrides Paper with that cell's flat surface, text, line and accent colours. The sheet uses a registered local font when available, with osifont for an unavailable face or missing glyph. Panel quantisation still applies, and low-contrast lines use the text ink.
+**Paper: Dashboard look** follows the dashboard's colours and font. Blueprint, White and Black keep their usual colours and osifont lettering. An explicit cell theme, style or font overrides every Paper choice with that cell's flat surface, text, line and accent colours. The sheet uses a registered local font when available, with osifont for an unavailable face or missing glyph. Panel quantisation still applies, and low-contrast lines use the text ink.
+
+Frame pushes resolve the saved dashboard look on the server, then read the actual inherited CSS during browser composition. If neither is available, Dashboard look falls back to blue paper.
 
 Previews read the cell's live CSS. Method thumbnails use its saved look when the core identifies the cell, so save and reopen the options after changing it. Core forms that omit the page/cell identity cannot distinguish identical widget options with different looks; those thumbnails use Paper. Gradient backgrounds and CSS effects stay outside the raster sheet.
 
@@ -78,13 +80,13 @@ Tool racks show each nozzle's known filament name and a colour swatch after its 
 - **Refresh button cycles the background**: on by default. See below.
 - Under More options: **Icons**, **Callout notes**, **Grid** and **Title line** (the printer line under the title).
 
-**Blueprint grid** works on every paper and cell look. Paper default keeps it on for blueprint paper and explicit cell looks, off for white and black paper. On and Off override that default. The border, title block and drawing-frame coordinates stay when the background grid is off.
+**Blueprint grid** works on every paper and cell look. Paper default keeps it on for blueprint paper, Dashboard look and explicit cell looks, off for white and black paper. On and Off override that default. The border, title block and drawing-frame coordinates stay when the background grid is off.
 
 ## Refresh button
 
 The widget adds a button action, `print_blueprint_cycle`. Each press moves that device's background white, blue, black, white, and repaints the panel in the same wake. The first press starts from the cell's own background. Map it under the device's Controls, Button map: `{"refresh": "print_blueprint_cycle"}` (or `"b"` for the physical key). Turn off *Refresh button cycles the background* in the cell options and the same mapping just redraws the frame with the latest sensor data.
 
-The editor previews Paper unless the cell has an explicit look override. A cell look also takes precedence over the refresh button's paper colour. Once you save a different Paper, the next screen render drops the button's colour override. Each device's base and pressed colours live together in `paper.json`; the old `cycle.json`, `shown.json` and `edited.json` files are ignored.
+The editor previews the selected Paper unless the cell has an explicit look override. Dashboard look stays out of the colour cycle: its refresh button just redraws the frame. A cell look also takes precedence over the refresh button's paper colour. Once you save a different Paper, the next screen render drops the button's colour override. Each device's base and pressed colours live together in `paper.json`; the old `cycle.json`, `shown.json` and `edited.json` files are ignored.
 
 ## Show it only while printing
 

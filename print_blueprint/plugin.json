@@ -49,11 +49,12 @@
       "type": "select",
       "label": "Paper",
       "default": "blue",
-      "help": "Used with Look of this cell set to Use dashboard. A cell theme, style or font override supplies the sheet's colours and font instead.",
+      "help": "Dashboard look follows the dashboard's colours and font. A cell look overrides Paper. Blue is the fallback if the look is unavailable.",
       "choices": [
         { "value": "blue", "label": "Blueprint" },
         { "value": "white", "label": "White" },
-        { "value": "black", "label": "Black" }
+        { "value": "black", "label": "Black" },
+        { "value": "dashboard", "label": "Dashboard look" }
       ]
     },
     {
@@ -68,7 +69,7 @@
       "type": "boolean",
       "label": "Refresh button cycles the background",
       "default": true,
-      "help": "On: each press of the refresh button goes white, blue, black (map it to the print_blueprint_cycle action). Off: the button just redraws the frame with the latest sensor data."
+      "help": "On: each refresh press goes white, blue, black (map it to print_blueprint_cycle). Dashboard look and Off just redraw the frame."
     },
     {
       "name": "idle",
@@ -130,7 +131,7 @@
         {"value": "on", "label": "On"},
         {"value": "off", "label": "Off", "aliases": [false, "false", "0", "no"]}
       ],
-      "help": "Default: on for blueprint and cell looks, off for white and black. On or Off overrides it."
+      "help": "Default: on for blueprint, dashboard and cell looks, off for white and black. On or Off overrides it."
     },
     {
       "name": "show_subtitle",

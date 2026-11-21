@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Add Dashboard look paper to follow the dashboard's colours and font.
+
 ## 0.1.6
 
 - Say which Bambu Lab integration settings Toolpaths needs, including Disable SSL verification on H2 and H3 printers.

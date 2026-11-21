@@ -280,7 +280,7 @@ def _paper_background(data_dir: Path, device_id: str, background: str) -> str:
     with _CYCLE_LOCK:
         records = _read_map(path)
         record = records.get(device_id)
-        if not isinstance(record, dict) or record.get("pressed") not in BACKGROUNDS \
+        if not isinstance(record, dict) or record.get("pressed") not in (*BACKGROUNDS, "dashboard") \
                 or record.get("base") not in (None, background):
             record = {"base": background, "pressed": background}
         else:
@@ -396,6 +396,8 @@ def _grid_option(value: Any) -> bool | None:
 def sheet_options(options: dict, panel: str) -> SheetOptions:
     method = str(options.get("method") or "toolpath")
     bg = str(options.get("background") or "blue")
+    # Dashboard paper starts blue when no saved/DOM look is available. apply() adds
+    # its resolved palette/font for previews and real frame pushes when available.
     return SheetOptions(
         method=method if method in METHODS else "toolpath",
         background=bg if bg in BACKGROUNDS else "blue",
@@ -832,7 +834,11 @@ def fetch(options: dict[str, Any], settings: dict[str, Any], *, ctx: dict[str, A
     device = str(ctx.get("target_device_id") or "")
     _DATA_DIRS[:] = [data_dir]
     if device and not preview:
-        cycles = _bool(options.get("button_cycles_background"), True)
+        dashboard = options.get("background") == "dashboard"
+        cycles = _bool(options.get("button_cycles_background"), True) and not dashboard
+        if dashboard:
+            # Remember the saved Paper change so returning to a paper resets old presses.
+            _paper_background(data_dir, device, "dashboard")
         if cycles and not look:
             opts = dataclasses.replace(opts, background=_paper_background(data_dir, device, opts.background))
         _note_cycling(data_dir, device, cycles)

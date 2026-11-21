@@ -1,4 +1,4 @@
-"""Read an explicit cell look from core, or a browser's resolved semantic tokens.
+"""Read a cell or dashboard look from core, or a browser's resolved semantic tokens.
 
 The host does not pass look tokens to fetch(). Saved placements are resolved through
 its page/theme/font stores; client.js supplies live CSS values for unsaved previews.
@@ -90,14 +90,18 @@ def _saved_cell(ctx: dict, options: dict):
 
 
 def saved(ctx: dict, options: dict) -> dict | None:
-    """Use dashboard is deliberately NOT an override, even on a dark dashboard."""
+    """Inherit the dashboard only when Paper requests it; explicit cell looks always win."""
     try:
         from flask import current_app
         from app.state.theme_registry import bundled_theme_colours
         page, cell = _saved_cell(ctx, options)
-        if cell is None or not any((cell.theme, cell.style, cell.font)):
+        if page is None:
             return None
-        theme_id = cell.theme or page.theme or 'light'
+        if cell is None and options.get('background') != 'dashboard':
+            return None
+        if options.get('background') != 'dashboard' and not any((cell.theme, cell.style, cell.font)):
+            return None
+        theme_id = (cell.theme if cell else None) or page.theme or 'light'
         tokens = dict(bundled_theme_colours(theme_id))
         family = ''
         for key in ('USER_THEMES_STORE', 'COMMUNITY_THEMES_STORE'):
@@ -113,7 +117,7 @@ def saved(ctx: dict, options: dict) -> dict | None:
                                    if re.fullmatch(r'#[0-9a-fA-F]{6}', v)})
                     family = block.get('--font-family', family)
         registry = current_app.config['PLUGIN_REGISTRY']
-        style = cell.style or page.style or 'standard'
+        style = (cell.style if cell else None) or page.style or 'standard'
         # Core styles expose a font family as CSS; read that same declaration.
         from app import composer
         css = (Path(composer.__file__).resolve().parents[1] / 'static/style/spectra-styles.css').read_text()
@@ -121,7 +125,7 @@ def saved(ctx: dict, options: dict) -> dict | None:
         face = re.search(r'--font-family:\s*([^;]+);', block[1]) if block else None
         if face:
             family = face[1]
-        font_id = cell.font or page.font
+        font_id = (cell.font if cell else None) or page.font
         if font_id:
             from app.composer import _resolve_font
             font = _resolve_font(font_id, registry)

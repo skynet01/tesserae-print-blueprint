@@ -7,6 +7,23 @@ from PIL import Image
 from test_server import server, ctx, image_file, wire, p1s_states
 
 
+@pytest.mark.parametrize('method', ['toolpath', 'preview', 'ai'])
+@pytest.mark.parametrize('panel', ['colour', 'grey16', 'grey4', 'spectra', 'bw'])
+def test_dashboard_example_uses_resolved_look_and_pure_white(server, tmp_path, method, panel):
+    look = {'bg':'#ffffff', 'ink':'#000000', 'rule':'#555555', 'accent':'#ff0000', 'font':''}
+    result = server.fetch({'method':method, 'background':'dashboard', 'panel':panel, 'show_grid':'off'}, {},
+                          ctx=ctx(tmp_path, preview=True, cell_look=look))
+    image = Image.open(image_file(server, tmp_path, result))
+    assert result['cell_look'] == look
+    assert image.getpixel((0, 0)) == (255, 255, 255)
+    if panel in ('bw', 'spectra'):
+        colours = {tuple(c) for c in np.asarray(image).reshape(-1, 3)}
+        expected = {(0, 0, 0), (255, 255, 255)}
+        if panel == 'spectra':
+            expected.add((255, 0, 0))
+        assert colours <= expected
+
+
 @pytest.mark.parametrize("method", ["toolpath", "preview", "ai"])
 def test_default_preview_is_offline_example(server, monkeypatch, tmp_path, method):
     monkeypatch.setattr(server, "_core", lambda: pytest.fail("example must work offline"))

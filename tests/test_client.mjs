@@ -62,7 +62,7 @@ test('unavailable AI or a timed-out request keeps the fallback and resolves comp
   } finally { Object.assign(globalThis, old); }
 });
 
-test('explicit cell look is sent to the renderer; Use dashboard keeps Paper', async () => {
+test('explicit cell look wins; inherited look is sent only for Dashboard paper', async () => {
   const old = {fetch: globalThis.fetch, window: globalThis.window, document: globalThis.document,
                getComputedStyle: globalThis.getComputedStyle};
   let explicit = true, calls = 0;
@@ -84,7 +84,7 @@ test('explicit cell look is sent to the renderer; Use dashboard keeps Paper', as
     const query = new URL(url, 'http://local').searchParams;
     assert.equal(JSON.parse(query.get('look')).bg, '#141310');
     assert.equal(JSON.parse(query.get('look')).font, 'Inter');
-    assert.equal(query.get('preview'), '1');
+    assert.equal(query.get('preview'), calls === 3 ? '0' : '1');
     return {ok: true, json: async () => ({image: '/styled.png', colors: {bg:'#141310', ink:'#f1eee4'}})};
   };
   try {
@@ -95,5 +95,18 @@ test('explicit cell look is sent to the renderer; Use dashboard keeps Paper', as
     await render(shadow, ctx);
     assert.match(shadow.innerHTML, /paper\.png/);
     assert.equal(calls, 1);
+    ctx.cell.options.background = 'dashboard';
+    await render(shadow, ctx);
+    assert.match(shadow.innerHTML, /styled\.png/);
+    assert.equal(calls, 2);
+    ctx.data.look_preview = false;
+    await render(shadow, ctx);
+    assert.match(shadow.innerHTML, /styled\.png/);
+    assert.equal(calls, 3);
+    // Missing DOM tokens keep the server's blue fallback, including on pushes.
+    delete tokens['--surface'];
+    await render(shadow, ctx);
+    assert.match(shadow.innerHTML, /paper\.png/);
+    assert.equal(calls, 3);
   } finally {Object.assign(globalThis, old);}
 });

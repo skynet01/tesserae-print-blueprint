@@ -13,11 +13,14 @@ function colour(value, fallback) {
   return HEX.test(String(value || "")) ? value : fallback;
 }
 
-function cellLook(shadow) {
+function cellLook(shadow, dashboard) {
   const cell = shadow.host?.closest(".cell");
-  if (!cell || !(cell.getAttribute("data-theme") || cell.getAttribute("data-style") ||
+  if (!cell || !(dashboard || cell.getAttribute("data-theme") || cell.getAttribute("data-style") ||
                  cell.style.getPropertyValue("--font-family"))) return null;
   const css = getComputedStyle(shadow.host);
+  // No resolved dashboard colours: keep the server's blue-paper fallback.
+  if (dashboard && (!css.getPropertyValue("--surface").trim() ||
+                    !css.getPropertyValue("--text-primary").trim())) return null;
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 1;
   const pen = canvas.getContext("2d");
@@ -59,7 +62,7 @@ export default async function render(shadow, ctx) {
       clearTimeout(timer);
     }
   }
-  const look = cellLook(shadow);
+  const look = cellLook(shadow, ctx?.cell?.options?.background === "dashboard");
   if (!sameLook(look, data.cell_look)) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 9_000);
