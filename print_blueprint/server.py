@@ -106,7 +106,9 @@ INLINE_MAX = 1000  # the inline line-art sheet is drawn at most this big, then s
 # (not on two-tone panels: a quantised sheet scaled up has unreadable text, so it is drawn at full size)
 DEFAULT_SIZE = (1200, 800)
 SHEET_NAME = re.compile(r"[0-9a-f]{40}(?:-q)?\.png")
-NOTE_NO_3MF = "No sliced file (the printer shares it only in LAN mode): drawn from the preview picture"
+TOOLPATH_SETUP = ("In the Bambu Lab integration, give the printer its IP address and access code and keep models"
+                  " to cache above 0. H2 and H3 printers also need Disable SSL verification (Advanced options).")
+NOTE_NO_3MF = "No sliced file in Home Assistant yet: drawn from the preview picture"
 NOTE_NO_KEY = "AI engraving needs a kie.ai API key: drawn from the preview picture"
 
 
@@ -977,8 +979,8 @@ def _toolpath_blocker(core: Any, printer: Any) -> str:
         return hit[1]
     http = _http_for(core, timeout=CHOICES_BUDGET_S, deadline=time.monotonic() + CHOICES_BUDGET_S)
     blocked = no_sliced_files(prefix, _states(all_states, prefix), http)
-    why = (f"Not available for {printers[prefix]}: Home Assistant gets no sliced files from it. "
-           "It needs LAN mode and a storage card.") if blocked else ""
+    why = (f"Not available for {printers[prefix]} yet: Home Assistant has no sliced files from it. "
+           f"{TOOLPATH_SETUP}") if blocked else ""
     with _AVAILABILITY_LOCK:
         if len(_AVAILABILITY) > 32:
             _AVAILABILITY.clear()

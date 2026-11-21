@@ -756,8 +756,8 @@ def test_toolpaths_is_disabled_for_a_printer_with_no_sliced_files(server, monkey
     calls = _wire_two(server, monkeypatch, key="k")
     rows = _rows(server, printer="h3c_printer")
     assert rows["toolpath"]["disabled"] is True
-    assert rows["toolpath"]["reason"] == ("Not available for H3C Printer: Home Assistant gets no sliced files "
-                                          "from it. It needs LAN mode and a storage card. "
+    assert rows["toolpath"]["reason"] == ("Not available for H3C Printer yet: Home Assistant has no sliced "
+                                          f"files from it. {server.TOOLPATH_SETUP} "
                                           "Availability depends on the printer. Save and reopen to refresh.")
     assert "disabled" not in rows["preview"] and "disabled" not in rows["ai"]
     assert "disabled" not in _rows(server, printer="p1s_printer")["toolpath"]

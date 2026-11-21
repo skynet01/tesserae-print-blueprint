@@ -216,8 +216,9 @@ def _no_storage_signs(h: _Ent) -> bool:
 
 def no_sliced_files(prefix: str, states: dict[str, dict], http_get: HistoryGet) -> bool:
     """True only when it is known that Home Assistant has no sliced file from this printer: the
-    print history answered with none for its serial, and the printer shows a sign it never will
-    (cloud prints, no storage card, LAN mode off). Anything unknown answers False."""
+    print history answered with none for its serial, and the printer shows a sign its files may not
+    reach the cache (cloud prints, no storage card, LAN mode off; cloud prints still cache once
+    ha-bambulab can reach the printer). Anything unknown answers False."""
     h = _Ent(prefix, states)
     serial = h.text("serial_number") or ""
     if not serial or not _no_storage_signs(h):
