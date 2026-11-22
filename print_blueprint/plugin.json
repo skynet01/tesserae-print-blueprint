@@ -2,7 +2,7 @@
   "tesserae_compat": "1.x",
   "tesserae_min": "0.484.1",
   "name": "Home Assistant, Print Blueprint",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "kind": "widget",
   "locales": ["en"],
   "description": "Draws the current print as a blueprint, from Bambu Lab via Home Assistant or directly from PrusaLink.",

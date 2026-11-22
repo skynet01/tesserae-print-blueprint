@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## 0.1.7
+
 - Hide the compare page; the Picture option no longer links to it.
 - Add Dashboard look paper to follow the dashboard's colours and font.
 - Read OctoPrint jobs and sliced G-code for blueprint sheets.
