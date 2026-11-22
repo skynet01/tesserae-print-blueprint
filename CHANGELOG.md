@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## 0.1.8
+
+- Rename to Print Blueprint, list it under Utility, and name every supported printer in the description.
+
 ## 0.1.7
 
 - Hide the compare page; the Picture option no longer links to it.

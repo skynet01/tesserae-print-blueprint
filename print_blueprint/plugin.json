@@ -1,13 +1,13 @@
 {
   "tesserae_compat": "1.x",
   "tesserae_min": "0.484.1",
-  "name": "Home Assistant, Print Blueprint",
-  "version": "0.1.7",
+  "name": "Print Blueprint",
+  "version": "0.1.8",
   "kind": "widget",
   "locales": ["en"],
-  "description": "Draws the current print as a blueprint, from Bambu Lab via Home Assistant or directly from PrusaLink.",
+  "description": "Draws what your 3D printer is printing as a blueprint of the part, with live print data. Works with Bambu Lab printers through Home Assistant (needs the Bambu Lab integration), and with OctoPrint and PrusaLink printers directly.",
   "icon": "ph-printer",
-  "category": "home-assistant",
+  "category": "utility",
   "supports": {
     "sizes": ["sm", "md", "lg"]
   },
